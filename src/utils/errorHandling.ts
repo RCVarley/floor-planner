@@ -29,17 +29,30 @@ export function reportError(code: ErrorCode) {
 }
 
 /**
- * # handleError(code, message)
+ * # fail(code, message)
  * @description A standard error handling function that returns a Result object with the error code and message.
  * @param code The error code to be handled
  * @param message The error message to be included in the result
  * @param cause The optional cause of the error
  * @returns A Result object with the error code and message
  */
-export function handleError(code: ErrorCode, message: string, cause?: unknown ): Failure<Error> {
+export function fail(code: ErrorCode, message: string, cause?: unknown ): Failure<Error> {
   return {
     data: null,
     error: new NamedError(code, message, { cause }),
+  }
+}
+
+/**
+ * # succeed(data)
+ * @description When a function returns a `Result` object, use this to return a success.
+ * @param data The data to be returned as a success
+ * @returns A Result object containing the success data
+ */
+export function succeed<ResultType>(data: ResultType): Success<ResultType> {
+  return {
+    data: data,
+    error: null,
   }
 }
 
