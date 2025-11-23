@@ -1,5 +1,5 @@
-import type {Point} from "@/types/floorPlan.ts"
 import {type MaybeRef, unref} from "vue"
+import type {Point} from "@/types/svgEditor.ts";
 
 export function addPoints(...points: Point[]): Point {
   if (!points.length) throw new Error("No points to add")

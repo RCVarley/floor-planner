@@ -85,7 +85,7 @@ export type CanHide<ObjectType extends Record<string, unknown>> = ICanHide & Obj
 export interface IHasMessage { message: string }
 export type HasMessage<ObjectType> = IHasMessage & ObjectType
 
-export type PartialPick<ObjectType extends Record<string, unknown>, KeyType extends keyof ObjectType> = Partial<ObjectType> & Pick<ObjectType, KeyType>
+export type PartialPick<ObjectType extends Record<PropertyKey, any>, KeyType extends keyof ObjectType> = Partial<ObjectType> & Pick<ObjectType, KeyType>
 
 export type TypedKeys<ObjectType, ValueType> = {
   [Key in keyof ObjectType]: ObjectType[Key] extends (ValueType | null | undefined) ? Key : never
