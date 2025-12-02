@@ -1,20 +1,24 @@
 import type {
-  FloorPlan, FloorPlanEntity, EntityParent, BaseFloorPlanEntity
+  FloorPlan, FloorPlanEntity, EntityStub, BaseFloorPlanEntity, EntityTypeName
 } from "@/types/floorPlanEntities/floorPlan.ts";
 import {uid} from "@/utils/ids.ts";
 import type {PartialPick} from "@/types/utilities.ts";
 import {fail, type Result, succeed} from "@/utils/errorHandling.ts";
-import type {Building} from "@/types/floorPlanEntities/building.ts";
+import {type Building} from "@/types/floorPlanEntities/building.ts";
 import type {Floor} from "@/types/floorPlanEntities/floor.ts";
 import type {Room} from "@/types/floorPlanEntities/room.ts";
 import type {PolygonalSection, RectangularSection, TriangularSection} from "@/types/floorPlanEntities/section.ts";
 import type {Fixture} from "@/types/floorPlanEntities/fixture.ts";
 import type {Label} from "@/types/floorPlanEntities/label.ts";
 
-function createParent(entity: BaseFloorPlanEntity): EntityParent {
+function createParent<ParentEntityType extends BaseFloorPlanEntity, ParentEntityTypeName extends EntityTypeName>(entity: ParentEntityType | undefined, parentEntityTypeName: ParentEntityTypeName): EntityStub<ParentEntityTypeName> | null {
+  if (!entity) {
+    return null
+  }
+
   return {
     id: entity.id,
-    type: entity.__brand,
+    type: parentEntityTypeName,
   }
 }
 
@@ -23,7 +27,7 @@ export function createPlan(FloorPlan: Partial<FloorPlan> = {}): Result<FloorPlan
     id: uid('plan'),
     name: 'Plan name',
     buildings: [],
-    floor: [],
+    floors: [],
     rooms: [],
     sections: [],
     fixtures: [],
@@ -34,48 +38,44 @@ export function createPlan(FloorPlan: Partial<FloorPlan> = {}): Result<FloorPlan
 }
 
 function getParent<
-  EntityType extends Partial<FloorPlanEntity>,
+  ParentEntityTypeName extends EntityTypeName,
+  EType extends Partial<FloorPlanEntity<ParentEntityTypeName>>,
   ParentEntityType extends BaseFloorPlanEntity
 >(
-  entity: EntityType,
+  parentType: ParentEntityTypeName,
+  entity: EType,
   parentEntity?: ParentEntityType
-): [parent: EntityParent, rest: Omit<EntityType, 'parent'>] {
+): [parent: EntityStub<ParentEntityTypeName> | null, rest: Omit<EType, 'parent'>] {
   const { parent, ...rest } = entity
   return [
-    parent ?? createParent(parentEntity!),
+    parent ?? createParent(parentEntity, parentType),
     rest
   ]
 }
 
-export function createBuilding(building: Partial<Building>, parent: FloorPlan): Result<Building>
-export function createBuilding(building: PartialPick<Building, 'parent'>): Result<Building>
-export function createBuilding(building: Partial<Building>, parent?: FloorPlan): Result<Building> {
-  if (!building.parent && !parent) {
-    return fail('building:create:bad-parameters', 'Building must have a parent')
-  }
+export function createBuilding(building: PartialPick<Building, 'points'>, parent?: Building): Result<Building> {
+  const [_parent, rest] = getParent('Building', building, parent)
 
-  const [_parent, rest] = getParent(building, parent)
-
-  return succeed({
+  const result: Building = {
     id: uid('build'),
-    offset: null,
     wallType: null,
     parent: _parent,
     floorIds: [],
     labelIds: [],
     __brand: 'Building',
     ...rest,
-  })
+  }
+  return succeed(result)
 }
 
-export function createFloor(floor: Partial<Floor>, parent: Building): Result<Floor>
-export function createFloor(floor: PartialPick<Floor, 'parent'>): Result<Floor>
-export function createFloor(floor: Partial<Floor>, parent?: Building): Result<Floor> {
+export function createFloor(floor: PartialPick<Floor, 'points'>, parent: Building): Result<Floor>
+export function createFloor(floor: PartialPick<Floor, 'points' | 'parent'>): Result<Floor>
+export function createFloor(floor: PartialPick<Floor, 'points'>, parent?: Building): Result<Floor> {
   if (!floor.parent && !parent) {
     return fail('floor:create:bad-parameters', 'Floor must have a parent')
   }
 
-  const [_parent, rest] = getParent(floor, parent)
+  const [_parent, rest] = getParent('Building', floor, parent)
 
   return succeed({
     id: uid('floor'),
@@ -89,22 +89,19 @@ export function createFloor(floor: Partial<Floor>, parent?: Building): Result<Fl
 }
 
 export function createRoom(room: PartialPick<Room, 'sectionIds'>, parent: Floor): Result<Room>
-export function createRoom(room: PartialPick<Room, 'sectionIds' | 'parent'>): Result<Room>
+export function createRoom(room: PartialPick<Room, 'sectionIds'>): Result<Room>
 export function createRoom(room: PartialPick<Room, 'sectionIds'>, parent?: Floor): Result<Room> {
   if (!room.sectionIds.length) {
     return fail('room:create:bad-parameters', 'Room must have at least one section')
   }
 
-  if (!room.parent && !parent) {
-    return fail('room:create:bad-parameters', 'Room must have a parent')
-  }
-
-  const [_parent, rest] = getParent(room, parent)
+  const [_parent, rest] = getParent('Floor', room, parent)
 
   return succeed({
     id: uid('room'),
     heightM: null,
     parent: _parent,
+    points: [],
     fixtureIds: [],
     outline: [],
     labelIds: [],
@@ -120,7 +117,7 @@ export function createPolygonalSection(section: PartialPick<PolygonalSection, 'p
     return fail('section:create:bad-parameters', 'Section must have a parent')
   }
 
-  const [_parent, rest] = getParent(section, parent)
+  const [_parent, rest] = getParent('Room', section, parent)
 
   return succeed({
     id: uid('poly'),
@@ -139,7 +136,11 @@ export function createRectangularSection(section: PartialPick<RectangularSection
     return fail('section:create:bad-parameters', 'Section must have a parent')
   }
 
-  const [_parent, rest] = getParent(section, parent)
+  if (section.points.length !== 4) {
+    return fail('section:create:bad-parameters', 'Rectangular section must contain 4 points.')
+  }
+
+  const [_parent, rest] = getParent('Room', section, parent)
 
   return succeed({
     id: uid('rect'),
@@ -158,7 +159,7 @@ export function createTriangularSection(section: PartialPick<TriangularSection, 
     return fail('section:create:bad-parameters', 'Section must have a parent')
   }
 
-  const [_parent, rest] = getParent(section, parent)
+  const [_parent, rest] = getParent('Room', section, parent)
 
   return succeed({
     id: uid('tri'),
@@ -170,14 +171,14 @@ export function createTriangularSection(section: PartialPick<TriangularSection, 
   })
 }
 
-export function createFixture(section: Partial<Fixture>, parent: Room): Result<Fixture>
-export function createFixture(section: PartialPick<Fixture, 'parent'>): Result<Fixture>
-export function createFixture(section: Partial<Fixture>, parent?: BaseFloorPlanEntity): Result<Fixture> {
+export function createFixture(section: PartialPick<Fixture, 'points'>, parent: Room): Result<Fixture>
+export function createFixture(section: PartialPick<Fixture, 'points' | 'parent'>): Result<Fixture>
+export function createFixture(section: PartialPick<Fixture, 'points'>, parent?: BaseFloorPlanEntity): Result<Fixture> {
   if (!section.parent && !parent) {
     return fail('fixture:create:bad-parameters', 'Fixture must have a parent')
   }
 
-  const [_parent, rest] = getParent(section, parent)
+  const [_parent, rest] = getParent('Room', section, parent)
 
   return succeed({
     id: uid('fix'),
@@ -195,7 +196,7 @@ export function createLabel(label: PartialPick<Label, 'text' | 'point'>, parent?
     return fail('fixture:create:bad-parameters', 'Fixture must have a parent')
   }
 
-  const [_parent, rest] = getParent(label, parent)
+  const [_parent, rest] = getParent((label.parent?.type || parent?.__brand)! as EntityTypeName, label, parent)
 
   return succeed({
     id: uid('label'),

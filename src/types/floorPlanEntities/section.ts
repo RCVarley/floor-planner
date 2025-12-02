@@ -1,9 +1,9 @@
-import type {FloorPlanEntity} from "@/types/floorPlanEntities/floorPlan.ts";
+import type {BaseFloorPlanEntity, FloorPlanEntity} from "@/types/floorPlanEntities/floorPlan.ts";
 import type {Point} from "@/types/svgEditor.ts";
 
 export type SectionId = string & { __brand: 'SectionId' }
 
-export interface Section extends FloorPlanEntity {
+export interface Section extends FloorPlanEntity<'Room'> {
   id: SectionId
   shape: 'rectangle' | 'triangle' | 'polygon'
   points: Point[]
@@ -11,7 +11,7 @@ export interface Section extends FloorPlanEntity {
   __brand: 'Section'
 }
 
-export function isSection(entity: FloorPlanEntity): entity is Section {
+export function isSection(entity: BaseFloorPlanEntity): entity is Section {
   return entity.__brand === 'Section'
 }
 

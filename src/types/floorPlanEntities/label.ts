@@ -1,4 +1,4 @@
-import type {BaseFloorPlanEntity, EntityType} from "@/types/floorPlanEntities/floorPlan.ts";
+import type {BaseFloorPlanEntity, EntityStub, EntityTypeName} from "@/types/floorPlanEntities/floorPlan.ts";
 import type {Point} from "@/types/svgEditor.ts";
 
 export type LabelId = string & { __brand: 'LabelId' }
@@ -6,10 +6,7 @@ export type LabelId = string & { __brand: 'LabelId' }
 export interface Label extends BaseFloorPlanEntity {
   id: LabelId
   point: Point
-  parent: {
-    id: string
-    type: EntityType
-  }
+  parent: EntityStub<EntityTypeName> | null
   text: string
   __brand: 'Label'
 }

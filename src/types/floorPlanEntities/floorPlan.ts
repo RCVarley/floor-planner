@@ -4,6 +4,7 @@ import type {Room} from "@/types/floorPlanEntities/room.ts";
 import type {Section} from "@/types/floorPlanEntities/section.ts";
 import type {Fixture} from "@/types/floorPlanEntities/fixture.ts";
 import type {Label, LabelId} from "@/types/floorPlanEntities/label.ts";
+import type {Point} from "@/types/svgEditor.ts";
 
 export type FloorPlanId = string & { __brand: 'FloorPlanId' }
 
@@ -11,7 +12,7 @@ export interface FloorPlan extends BaseFloorPlanEntity {
   id: FloorPlanId
   name: string
   buildings: Building[]
-  floor: Floor[]
+  floors: Floor[]
   rooms: Room[]
   sections: Section[]
   fixtures: Fixture[]
@@ -19,7 +20,11 @@ export interface FloorPlan extends BaseFloorPlanEntity {
   __brand: 'FloorPlan'
 }
 
-export type EntityType =
+export function isFloorPlan(entity: BaseFloorPlanEntity): entity is FloorPlan {
+  return entity?.__brand === 'FloorPlan'
+}
+
+export type EntityTypeName =
   | 'FloorPlan'
   | 'Building'
   | 'Floor'
@@ -28,21 +33,22 @@ export type EntityType =
   | 'Fixture'
   | 'Label'
 
-export interface EntityParent {
+export interface EntityStub<T extends EntityTypeName> {
   id: string
-  type: EntityType
+  type: T
 }
 
 export interface BaseFloorPlanEntity {
   id: string
-  __brand: EntityType
+  __brand: EntityTypeName
 }
 
-export interface FloorPlanEntity extends BaseFloorPlanEntity {
+export interface FloorPlanEntity<ParentType extends EntityTypeName> extends BaseFloorPlanEntity {
   id: string
+  points: Point[]
   labelIds: LabelId[]
-  parent: EntityParent
-  __brand: EntityType
+  parent: EntityStub<ParentType> | null
+  __brand: EntityTypeName
 }
 
 export type WallType = 'brick' | 'concrete' | 'steel' | 'wood' | 'glass' | 'metal' | 'plastic' | 'other'
