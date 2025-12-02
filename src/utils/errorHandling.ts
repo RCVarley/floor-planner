@@ -20,12 +20,17 @@ export class NamedError<ErrorCodeType extends ErrorCode> extends Error {
 }
 
 /**
- * # reportError(code)
+ * # reportError
  * @description A standard error reporting function that can be updated to use 3rd party error tracking services like Sentry, Bugsnag, etc.
- * @param code The error code to be reported
+ * @param error The error to report
  */
-export function reportError(code: ErrorCode) {
-  console.error(code)
+export function reportError(error: Error) {
+  if (error instanceof NamedError) {
+    console.error(`${error.name}: ${error.message}`)
+    return
+  }
+
+  console.error(error)
 }
 
 /**
