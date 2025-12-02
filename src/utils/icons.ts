@@ -1,32 +1,26 @@
 import type { EnumType } from '../types/utilities.ts'
 import type { IconifyIcon } from '@iconify/types'
-
 import {addIcon, buildIcon, type IconifyIconBuildResult} from '@iconify/vue'
-import Lucide from '@iconify-json/lucide/icons.json'
-import FontAwesomeBrands from '@iconify-json/fa6-brands/icons.json'
-import StreamlinePixel from '@iconify-json/streamline-pixel/icons.json'
+import {
+  FontAwesomeBrands,
+  Lucide,
+  Material,
+  StreamlinePixel,
+  type FontAwesomeBrandsIconNames,
+  type LucideIconNames,
+  type MaterialIconNames,
+  type StreamlinePixelIconNames,
+  type IconName,
+} from "./iconPacksHeavy.ts";
 
 export const IconProvider = {
   lucide: 'lucide',
   fontAwesomeBrands: 'fa6-brands',
   streamlinePixel: 'streamline-pixel',
+  material: 'mdi',
 } as const
+
 export type IconProvider = EnumType<typeof IconProvider>
-
-type LucideIconNames = keyof typeof Lucide.icons // | keyof typeof LucideAliases
-type FontAwesomeBrandsIconNames = keyof typeof FontAwesomeBrands.icons // | keyof typeof FontAwesomeBrandsAliases
-type StreamlinePixelIconNames = keyof typeof StreamlinePixel.icons // | keyof typeof StreamlinePixelAliases
-
-// const iconProviderSizes: Record<IconProvider, { width: number, height: number }> = {
-//   lucide: {
-//     width: LucideIcons
-//   }
-// }
-
-export type IconName =
-  | `lucide:${LucideIconNames}`
-  | `fa6-brands:${FontAwesomeBrandsIconNames}`
-  | `streamline-pixel:${StreamlinePixelIconNames}`
 
 export type IconRegister = Partial<Record<string, IconName>>
 
@@ -75,7 +69,7 @@ export const nuxtUiIcons = {
   tip: 'lucide:lightbulb',
   upload: 'lucide:upload',
   warning: 'lucide:triangle-alert'
-} as const satisfies IconRegister
+} as const
 
 export const iconDefinitions = {
   ...nuxtUiIcons,
@@ -87,7 +81,6 @@ export const iconDefinitions = {
   logo: 'streamline-pixel:building-real-eastate-project-blueprint',
   floorPlan: 'streamline-pixel:building-real-eastate-project-blueprint',
   client: 'lucide:square-user-round',
-  rectangle: 'lucide:rectangle-horizontal',
   hand: 'lucide:hand',
   move: 'lucide:move',
   cursor: 'lucide:mouse-pointer',
@@ -104,7 +97,19 @@ export const iconDefinitions = {
   arrowLeft: 'lucide:arrow-left',
   arrowRight: 'lucide:arrow-right',
   refresh: 'lucide:refresh-cw',
-} as const satisfies IconRegister
+  building: 'lucide:house',
+  floor: 'lucide:align-vertical-justify-end',
+  room: 'lucide:panels-right-bottom',
+  rectangle: 'lucide:rectangle-horizontal',
+  triangle: 'lucide:triangle-right',
+  window: 'mdi:window-open-variant',
+  radiator: 'mdi:radiator',
+  vent: 'mdi:view-sequential-outline',
+  extractor: 'mdi:fan',
+  door: 'mdi:door-open',
+} as const
+
+
 
 function updateIcon(
   iconData: IconifyIconBuildResult,
@@ -134,7 +139,6 @@ export async function registerIcon(icon: IconName) {
     provider: IconProvider,
     name: LucideIconNames | FontAwesomeBrandsIconNames | StreamlinePixelIconNames
   ]
-  // const { data, error } = await tryCatch(import(`../../node_modules/@iconify-icons/${provider}/${name}.js`))
 
   if (!name) {
     throw new Error(`Missing icon name: ${icon}`)
@@ -162,6 +166,13 @@ export async function registerIcon(icon: IconName) {
       iconData = buildIcon(StreamlinePixel.icons[name as StreamlinePixelIconNames], {
         width: StreamlinePixel.width,
         height: StreamlinePixel.height,
+      })
+      break
+
+    case IconProvider.material:
+      iconData = buildIcon(Material.icons[name as MaterialIconNames], {
+        width: Material.width,
+        height: Material.height,
       })
       break
 

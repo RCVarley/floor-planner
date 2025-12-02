@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "build": "vue-tsc -p tsconfig.build.json && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@iconify-json/fa6-brands": "^1.2.6",
     "@iconify-json/lucide": "^1.2.73",
+    "@iconify-json/mdi": "^1.2.3",
     "@iconify-json/streamline-pixel": "^1.2.0",
     "@nuxt/ui": "^4.1.0",
     "pinia": "^3.0.4",
