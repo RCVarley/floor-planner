@@ -13,3 +13,12 @@ export interface ToolbarButtonProps extends Omit<ButtonProps, 'onClick' | 'activ
   children?: ToolbarButtonProps[]
   hidden?: boolean | ComputedRef<boolean>
 }
+
+export type ToolbarButtonGroupId = string & { __brand: 'ToolbarButtonGroupId' }
+
+export interface ToolbarButtonGroup {
+  id: ToolbarButtonGroupId
+  name: string
+  buttons: ToolbarButtonProps[]
+  hidden?: boolean | ComputedRef<boolean>
+}
