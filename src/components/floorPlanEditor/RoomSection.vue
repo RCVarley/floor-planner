@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import type {Point, RoomPlanSection, Section} from "@/types/floorPlan.ts"
+import type {RoomPlanSection} from "@/types/floorPlanEntities/floorPlan.ts"
 import {computed, onMounted, ref, shallowRef, useTemplateRef, watch} from "vue"
 import {addPoints, checkIfInside, distanceBetween, polygonArea, snapToGrid, subtractPoints} from "@/utils/points.ts"
 import {useEditor} from "@/composables/useEditor.ts"
 import {useDraggable} from "@vueuse/core"
 import {useDebug} from "@/composables/useDebug.ts"
 import type {IHasId} from "@/types/utilities.ts";
+import type {Section} from "@/types/floorPlanEntities/section.ts";
+import type {Point} from "@/types/svgEditor.ts";
 
 const {
   roomOffset,

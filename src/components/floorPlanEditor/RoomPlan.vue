@@ -5,19 +5,21 @@ import {
   shallowRef,
   useTemplateRef,
 } from "vue"
-import type {Point, Room, RoomPlanSection} from "@/types/floorPlan.ts"
-import type {EditorMode} from "@/components/floorPlanEditor/FloorPlanEditor.vue"
+import type {RoomPlanSection} from "@/types/floorPlanEntities/floorPlan.ts"
+import type {ToolName} from "@/components/floorPlanEditor/FloorPlanEditor.vue"
 import {distanceBetween, polygonArea, snapToGrid} from "@/utils/points.ts"
 import {useDraggable} from "@vueuse/core";
 import {useDebug} from "@/composables/useDebug.ts";
 import {useEditor} from "@/composables/useEditor.ts";
+import type {Room} from "@/types/floorPlanEntities/room.ts";
+import type {Point} from "@/types/svgEditor.ts";
 
 const {
   pixelPerMeter: ppm = 100,
   snap = false,
   editorMode,
 } = defineProps<{
-  editorMode: EditorMode,
+  editorMode: ToolName,
   pixelPerMeter?: number
   snap?: boolean
 }>()
