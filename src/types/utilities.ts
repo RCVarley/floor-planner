@@ -74,7 +74,7 @@ export type Prettify<T> = {
   [Key in keyof T]: T[Key]
 }
 
-export type NullableProps<T> = { [P in keyof T]?: T[P] | null}
+export type NullableProps<T> = { [P in keyof T]: T[P] | null}
 
 export interface ICanDisable { disable?: boolean }
 export type CanDisable<ObjectType extends Record<string, unknown>> = ICanDisable & ObjectType
