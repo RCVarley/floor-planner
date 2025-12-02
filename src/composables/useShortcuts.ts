@@ -1,6 +1,7 @@
 // src/composables/useExtendedShortcuts.ts
 import { useEventListener } from '@vueuse/core'
-import type {ToolbarButtonProps} from "@/types/toolbarButton.ts";
+import type {ToolbarButtonGroup, ToolbarButtonProps} from "@/types/toolbarButton.ts";
+import {type MaybeRef, unref} from "vue";
 // You may need to adjust this path depending on your setup/version:
 
 export type ExtendedShortcutHandler = (e: KeyboardEvent) => void
@@ -17,7 +18,7 @@ type DefineShortcutsOptions = {
   chainDelay?: number
 }
 
-export function extractShortcuts(items: ToolbarButtonProps[][]) {
+export function extractShortcuts(items: MaybeRef<ToolbarButtonGroup[]>) {
   const shortcuts: any = {}
   function traverse(items2: ToolbarButtonProps[]) {
     items2.forEach((item) => {
@@ -33,7 +34,7 @@ export function extractShortcuts(items: ToolbarButtonProps[][]) {
       }
     });
   }
-  traverse(items.flat())
+  traverse(unref(items).map(group => group.buttons).flat())
   return shortcuts
 }
 
