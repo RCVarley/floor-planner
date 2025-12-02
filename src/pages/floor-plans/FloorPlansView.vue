@@ -2,7 +2,8 @@
 import appConfig from "@/app.config.ts"
 import DashboardPanel from "@/layouts/DashboardPanel.vue";
 import {reactive} from "vue";
-import type {Room} from "@/types/floorPlan.ts";
+
+import type {Room} from "@/types/floorPlanEntities/room.ts";
 
 const icons = appConfig.ui.icons
 

@@ -29,6 +29,9 @@ export default defineConfig({
         icons: nuxtUiIcons
       },
       autoImport: {
+        exclude: [
+          'src/components',
+        ],
         imports: [
           {
             '@nuxt/ui': [
@@ -41,7 +44,8 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': '/src'
+      '@': '/src',
+      "@editor": "/src/features/floorPlanEditorV2/*"
     }
   },
   // test: {

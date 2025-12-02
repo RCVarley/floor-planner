@@ -58,11 +58,49 @@ export function checkIfInside(point: MaybeRef<Point>, polygon: MaybeRef<Point[]>
   return inside
 }
 
+export function matchPoints(a: MaybeRef<Point>, b: MaybeRef<Point>) {
+  return unref(a).x === unref(b).x
+    && unref(a).y === unref(b).y
+}
+
 export function distanceBetween(a: MaybeRef<Point>, b: MaybeRef<Point>) {
   const x = Math.pow(unref(b).x - unref(a).x, 2)
   const y = Math.pow(unref(b).y - unref(a).y, 2)
 
   return Math.sqrt(x + y)
+}
+
+export type RectanglePolygonPoints = [tl: Point, tr: Point, br: Point, bl: Point]
+export type RectangleCoordinates = [x1: number, y1: number, x2: number, y2: number]
+
+function getRectangleCoordinatesFromRect(x: number, y: number, width: number, height: number): RectangleCoordinates {
+  return [x, y, x + width, y + height]
+}
+
+function getRectangleCoordinatesFromPoints(p1: Point, p2: Point): RectangleCoordinates {
+  return [p1.x, p1.y, p2.x, p2.y]
+}
+
+export function extrapolateRectanglePolygon(p1: Point, p2: Point): RectanglePolygonPoints
+export function extrapolateRectanglePolygon(x: number, y: number, width: number, height: number): RectanglePolygonPoints
+export function extrapolateRectanglePolygon(xOrP1: number | Point, yOrP2: number | Point, widthOrUndefined?: number, heightOrUndefined?: number): RectanglePolygonPoints {
+  const [x1, y1, x2, y2] = typeof xOrP1 === 'number' && typeof yOrP2 === 'number' && typeof widthOrUndefined === 'number' && typeof heightOrUndefined === 'number'
+    ? getRectangleCoordinatesFromRect(xOrP1, yOrP2, widthOrUndefined, heightOrUndefined)
+    : getRectangleCoordinatesFromPoints(xOrP1 as Point, yOrP2 as Point)
+
+  return [
+    { x: Math.min(x1, x2), y: Math.min(y1, y2) },
+    { x: Math.max(x1, x2), y: Math.min(y1, y2) },
+    { x: Math.max(x1, x2), y: Math.max(y1, y2) },
+    { x: Math.min(x1, x2), y: Math.max(y1, y2) },
+  ]
+}
+
+export function getPointerPosition(e: PointerEvent, panOffset: MaybeRef<Point>, scale: MaybeRef<number>) {
+  return {
+    x: Math.round((e.offsetX + unref(panOffset).x) / unref(scale)),
+    y: Math.round((e.offsetY + unref(panOffset).y) / unref(scale))
+  }
 }
 
 export function snapToGrid(point: Point, snap: number) {

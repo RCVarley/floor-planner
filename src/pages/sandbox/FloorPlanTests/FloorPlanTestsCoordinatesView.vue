@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {reactive, ref} from "vue"
-import type {Room} from "@/types/floorPlan.ts"
 import {createRoom, createSection} from "@/utils/floorPlan.ts"
 import { ui } from '@/app.config.ts'
+import type {Room} from "@/types/floorPlanEntities/room.ts";
 
 const icons = ui.icons
 

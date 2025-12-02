@@ -1,28 +1,19 @@
 <script setup lang="ts">
 import {reactive} from "vue"
-import type {Room} from "@/types/floorPlan.ts"
-import {createRoom, createSection} from "@/utils/floorPlan.ts"
+import {createPlan} from "@/utils/floorPlan.ts"
+import FloorPlanEditorV2 from '@editor/components/FloorPlanEditor.vue'
 
-const rooms = reactive<Room[]>([
-  createRoom({
-    sections: [
-      createSection({
-        polygon: [
-          {x: 0, y: 0},
-          {x: 0, y: 325},
-          {x: 335, y: 345},
-          {x: 355, y: 0},
-        ],
-      })
-    ],
-    offset: { x: 100, y: 100 },
-  })
-])
+const { data, error } = createPlan()
+if (error) {
+  throw error
+}
+
+const plan = reactive(data)
 </script>
 
 <template>
-<FloorPlanEditor
-  v-model="rooms"
+<FloorPlanEditorV2
+  v-model="plan"
 />
 </template>
 

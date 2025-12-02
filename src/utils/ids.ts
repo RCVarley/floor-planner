@@ -10,5 +10,5 @@ export function uid<ReturnType extends string = string>(prefix = ""): ReturnType
 }
 
 export function brandedId<ReturnType extends string = string>(id: string): ReturnType {
-  return id as ReturnType
+  return id.toLowerCase() as ReturnType
 }
