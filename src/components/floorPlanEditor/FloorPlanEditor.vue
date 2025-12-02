@@ -1,209 +1,203 @@
 <script setup lang="ts">
-import {computed, ref, unref, provide, readonly, useTemplateRef, type Reactive, watch} from "vue"
-import type {Room, Point} from "@/types/floorPlan.ts"
-import {brandedId} from "@/utils/ids.ts"
-import RoomPlan from "@/components/floorPlanEditor/RoomPlan.vue"
-import appConfig from "@/app.config.ts";
-import {extractShortcuts, useExtendedShortcuts} from "@/composables/useShortcuts.ts"
-import type {ToolbarButtonProps} from "@/types/toolbarButton.ts"
-import {useDebug} from "@/composables/useDebug.ts"
-import {createRoom} from "@/utils/floorPlan.ts";
-import {round} from "@/utils/maths.ts";
+import {computed, ref, provide, useTemplateRef, reactive, watch} from "vue"
+import {isRoom, type Room, type RoomId} from "@/types/floorPlanEntities/room.ts";
+import type {ToolName, EditorSelectedEntity, Point} from "@/types/svgEditor.ts";
+import {useEditorGrid} from "@/composables/useEditorGrid.ts";
+import {useEditorControls} from "@/composables/useEditorControls.ts";
+import {useEditorDraw} from "@/composables/useEditorDraw.ts";
+import {useEditorToolbar} from "@/composables/useEditorToolbar.ts";
+import type {BaseFloorPlanEntity, FloorPlan} from "@/types/floorPlanEntities/floorPlan.ts";
+import {type Building, type BuildingId, isBuilding} from "@/types/floorPlanEntities/building.ts";
+import {type Floor, type FloorId, isFloor} from "@/types/floorPlanEntities/floor.ts";
+import {isSection, type Section, type SectionId} from "@/types/floorPlanEntities/section.ts";
+import {type Fixture, type FixtureId, isFixture} from "@/types/floorPlanEntities/fixture.ts";
+import {isLabel, type Label} from "@/types/floorPlanEntities/label.ts";
+import {NamedError} from "@/utils/errorHandling.ts";
+import EditorToolbar from "@/components/floorPlanEditor/EditorToolbar.vue";
+import AppConfig from "@/app.config.ts";
+import {useDebug} from "@/composables/useDebug.ts";
 
-const rooms = defineModel<Reactive<Room[]>>({ required: true })
+const model = defineModel<FloorPlan>({required: true})
 const pan = defineModel<Point>('pan', { default: { x: 0, y: 0 } })
 const scale = defineModel<number>('zoom', { default: 1 })
 const snap = defineModel<boolean>('snap', { default: false })
+
+const icons = AppConfig.ui.icons
+
+const buildings = reactive<Building[]>([])
+const floors = reactive<Floor[]>([])
+const rooms = reactive<Room[]>([])
+const sections = reactive<Section[]>([])
+const fixtures = reactive<Fixture[]>([])
+const labels = reactive<Label[]>([])
+
+const buildingsMap = ref(new Map(buildings.map((building) => [building.id, building])))
+const floorsMap = ref(new Map(floors.map((floor) => [floor.id, floor])))
+const roomsMap = ref(new Map(rooms.map((room) => [room.id, room])))
+const sectionsMap = ref(new Map(sections.map((section) => [section.id, section])))
+const fixturesMap = ref(new Map(fixtures.map((fixture) => [fixture.id, fixture])))
+const labelsMap = ref(new Map(labels.map((label) => [label.id, label])))
+
+function addEntity(entity: BaseFloorPlanEntity) {
+  switch (true) {
+    case isBuilding(entity):
+      buildings.push(entity)
+      buildingsMap.value.set(entity.id, buildings.at(-1)!)
+      break
+
+    case isFloor(entity):
+      floors.push(entity)
+      floorsMap.value.set(entity.id, floors.at(-1)!)
+      break
+
+    case isRoom(entity):
+      rooms.push(entity)
+      roomsMap.value.set(entity.id, rooms.at(-1)!)
+      break
+
+    case isSection(entity):
+      sections.push(entity)
+      sectionsMap.value.set(entity.id, sections.at(-1)!)
+      break
+
+    case isFixture(entity):
+      fixtures.push(entity)
+      fixturesMap.value.set(entity.id, fixtures.at(-1)!)
+      break
+
+    case isLabel(entity):
+      labels.push(entity)
+      labelsMap.value.set(entity.id, labels.at(-1)!)
+      break
+
+    default:
+      throw new NamedError('shape:create:bad-parameters',`Unknown entity ${entity}`)
+  }
+}
+
+
+watch(model, (val) => {
+  buildings.length = 0
+  buildings.push(...val.buildings)
+
+  floors.length = 0
+  floors.push(...val.floors)
+
+  rooms.length = 0
+  rooms.push(...val.rooms)
+
+  sections.length = 0
+  sections.push(...val.sections)
+
+  fixtures.length = 0
+  fixtures.push(...val.fixtures)
+
+  labels.length = 0
+  labels.push(...val.labels)
+}, {
+  immediate: true,
+  deep: true,
+})
+
+const activeBuilding = ref<BuildingId | null>(null)
+const activeFloor = ref<FloorId | null>(null)
+const activeRoom = ref<RoomId | null>(null)
+const activeSection = ref<SectionId | null>(null)
+const activeFixture = ref<FixtureId | null>(null)
+
+const entityStates = {
+  hasBuildings: computed(() => buildings.length > 0),
+  notHasBuildings: computed(() => !buildings.length),
+
+  hasFloors: computed(() => floors.length > 0),
+  notHasFloors: computed(() => !floors.length),
+
+  hasRooms: computed(() => rooms.length > 0),
+  notHasRooms: computed(() => !rooms.length),
+
+  hasSections: computed(() => sections.length > 0),
+  notHasSections: computed(() => !sections.length),
+
+  hasFixtures: computed(() => fixtures.length > 0),
+  notHasFixtures: computed(() => !fixtures.length),
+
+  hasLabels: computed(() => labels.length > 0),
+  notHasLabels: computed(() => !labels.length),
+
+  activeBuilding,
+  activeFloor,
+  activeRoom,
+  activeSection,
+  activeFixture,
+}
+
+export type EditorEntityStates = typeof entityStates
 
 const ppm = ref(100) // px per meter
 const gridSize = computed(() => ppm.value)
 const gridExtent = 10000
 
-provide('editorScale', scale)
-provide('editorPan', pan)
+const mode = ref<ToolName>('move')
 
-const icons = appConfig.ui.icons
-
-const svg = useTemplateRef('floorPlanEditorSvgRef')
-provide('editorSvg', svg)
-
-export type EditorMode = 'pan' | 'move' | 'select' | 'text'
-const mode = ref<EditorMode>('move')
-provide('editorMode', readonly(mode))
-let modeStorage: EditorMode | null = null
-const mouseDown = ref(false)
-const forcePan = ref(false)
-const isMouseDown = computed(() => forcePan.value || mouseDown.value)
-
-const _editorButtons: ToolbarButtonProps[][] = [
-  [
-    {
-      id: brandedId('pan'),
-      label: 'Pan',
-      icon: icons.hand,
-      kbds: ['p'],
-      active: computed(() => mode.value === 'pan'),
-      onClick: () => mode.value = 'pan',
-    },
-    {
-      id: brandedId('move'),
-      label: 'Move',
-      icon: icons.move,
-      kbds: ['m'],
-      active: computed(() => mode.value === 'move'),
-      onClick: () => mode.value = 'move',
-    },
-    {
-      id: brandedId('Select'),
-      label: 'Select',
-      kbds: ['s'],
-      icon: icons.cursor,
-      active: computed(() => mode.value === 'select'),
-      onClick: () => mode.value = 'select',
-    },
-    {
-      id: brandedId('Text'),
-      label: 'Text',
-      kbds: ['t'],
-      icon: icons.text,
-      active: computed(() => mode.value === 'text'),
-      onClick: () => mode.value = 'text',
-    },
-  ],
-  [
-    {
-      id: brandedId('Rectangle'),
-      label: 'Rectangle',
-      kbds: ['r'],
-      icon: icons.rectangle,
-      onClick: () => rooms.value.push(createRoom()),
-      hidden: false,
-    }
-  ]
-]
-
-const editorButtons = _editorButtons
-  .map((group) => group.filter((button) => !unref(button.hidden)))
-  .filter(group => !!group.length)
-
-
-useExtendedShortcuts({
-  ...extractShortcuts(editorButtons),
-  ' ': {
-    keydown: () => {
-      if (mode.value !== 'pan') {
-        modeStorage = mode.value
-      }
-
-      mode.value = 'pan'
-      forcePan.value = true
-    },
-    keyup: () => {
-      if (mode.value === 'pan' && modeStorage) {
-        mode.value = modeStorage
-        modeStorage = null
-      }
-      forcePan.value = false
-    },
-  }
-})
-
-// const mouseCollection = ref<{
-//   topLeft: Partial<MouseEvent> | null
-//   topMid: Partial<MouseEvent> | null
-//   topRight: Partial<MouseEvent> | null
-// }>({ topLeft: null, topMid: null, topRight: null})
-
-// const mouseCollectMode = ref<keyof UnwrapRef<typeof mouseCollection> | null>(null)
-const mousePosition = ref<Point | null>(null)
-const { debugData } = useDebug()
-
-function handleMouseMove(
-  {
-    movementX,
-    movementY,
-    offsetX,
-    offsetY,
-  }: MouseEvent
-) {
-  // if (mouseCollectMode.value) {
-  //   mouseCollection.value[mouseCollectMode.value] = {
-  //     movementX,
-  //     movementY,
-  //     offsetX,
-  //     offsetY,
-  //   }
-  //   mouseCollectMode.value = null
-  // }
-
-  mousePosition.value = {
-    x: Math.round((offsetX + pan.value.x) / scale.value),
-    y: Math.round((offsetY + pan.value.y) / scale.value)
-  }
-
-  debugData.value.mouse = {
-    offsetX,
-    offsetY,
-    ...mousePosition.value,
-    ratio: round((Math.sqrt((offsetX ** 2) + (offsetY ** 2)) / Math.sqrt((mousePosition.value.x ** 2) + (mousePosition.value.y ** 2))), 1)
-  }
-
-  if (mode.value === 'pan' && isMouseDown.value) {
-    pan.value.x += movementX * -1
-    pan.value.y += movementY * -1
-  }
-}
-
-function handleZoom({ deltaY }: WheelEvent) {
-  const result = scale.value - deltaY * 0.01
-  if (result < 0.1) {
-    scale.value = 0.1
-    return
-  }
-
-  if (result > 3) {
-    scale.value = 3
-    return
-  }
-
-
-  scale.value = round(result, 2)
-}
-
-const viewTransform = computed(
-  () => `translate(${pan.value.x * -1},${pan.value.y * -1}) scale(${scale.value})`
+const selectedEntities = ref<EditorSelectedEntity[]>([])
+const selectedEntity = computed(() => selectedEntities.value.length === 1
+  ? selectedEntities.value[0]!
+  : null
 )
 
+const mousePosition = ref<Point | null>(null)
 const nodeRadius = computed(() => 8 / (scale.value))
-
-const scaleThreshold = ref<'sm' | 'md' | 'lg'>('lg')
-const gridSnapSize = ref(0)
-
-watch(scale, () => {
-  let threshold: 'sm' | 'md' | 'lg'
-  let size: number
-
-  switch (true) {
-    case scale.value >= 1 && scale.value < 1.5:
-      threshold = 'md'
-      size = 25
-      break
-
-    case scale.value >= 1.5:
-      threshold = 'sm'
-      size = 10
-      break
-
-    default:
-      threshold = 'lg'
-      size = 100
-  }
-
-  scaleThreshold.value = threshold
-  gridSnapSize.value = snap.value ? size : 0
-}, {
-  immediate: true,
+const {
+  cursorLine,
+  cursorRect,
+  drawMode,
+  onDraw,
+  drawToolbarButtons,
+} = useEditorDraw({
+  mode,
+  mousePosition,
+  entityStates,
+  selectedEntity,
+  addEntity,
 })
+
+const {
+  toolbarGroups,
+} = useEditorToolbar({
+    mode
+  },
+  drawToolbarButtons
+)
+
+const {
+  isMouseDown,
+  viewTransform,
+  handleMouseMove,
+  handleMouseDown,
+  handleMouseUp,
+  handleWheel,
+  handleHover,
+  handleClick,
+} = useEditorControls(
+    {
+      mode,
+      drawMode,
+      pan,
+      scale,
+      mousePosition,
+      toolbarGroups,
+      onClick: () => {
+        console.group('onClick')
+        if (drawMode.value) {
+          onDraw()
+        }
+        console.groupEnd()
+      }
+    }
+  )
+const { gridSnapSize } = useEditorGrid({ snap, scale })
+
+const svg = useTemplateRef('floorPlanEditorSvgRef')
 
 const editorState = {
   scale,
@@ -215,13 +209,29 @@ const editorState = {
   nodeRadius,
   basePixelsPerMeter: ppm,
 }
+
+const showPropertiesPanel = ref(false)
+const isShowingPropertiesPanel = computed(() => !!(showPropertiesPanel.value || selectedEntity.value))
+const { debugData } = useDebug()
+
+watch([showPropertiesPanel, selectedEntity, isShowingPropertiesPanel], ([_showPropertiesPanel, _selectedEntity, _isShowingPropertiesPanel]) => {
+  debugData.value.showPropertiesPanel = _showPropertiesPanel
+  debugData.value.selectedEntity = _selectedEntity
+  debugData.value.isShowingPropertiesPanel = _isShowingPropertiesPanel
+}, { immediate: true })
+
 export type EditorState = typeof editorState
 provide('editor', editorState)
 </script>
 
 <template>
-  <div class="grow grid grid-cols-[auto_1fr] grid-rows-[auto_1fr] gap-4">
-    <div class="col-span-2 flex gap-4">
+  <div
+    class="grow grid grid-cols-[auto_1fr_auto] grid-rows-[auto_1fr] gap-4"
+  >
+    <div
+      class="col-start-1 flex gap-4"
+      :class="isShowingPropertiesPanel ? 'col-span-2' : 'col-span-3'"
+    >
       <fieldset class="flex gap-2">
         <legend>Pan</legend>
 
@@ -242,86 +252,48 @@ provide('editor', editorState)
         />
       </UFormField>
 
-<!--      <UBadge-->
-<!--        size="xl"-->
-<!--        class="self-end"-->
-<!--        color="neutral"-->
-<!--        variant="outline"-->
-<!--      >-->
-<!--        clicked: {{ isMouseDown }}-->
-<!--      </UBadge>-->
-
-<!--      <UFieldGroup>-->
-<!--        <UButton-->
-<!--          v-for="[label, mode] in [['TL', 'topLeft'], ['TM', 'topMid'], ['TR','topRight']] as [string, keyof typeof mouseCollection][]"-->
-<!--          :label-->
-<!--          :active="mouseCollectMode === mode"-->
-<!--          class="self-end"-->
-<!--          variant="subtle"-->
-<!--          active-variant="solid"-->
-<!--          size="lg"-->
-<!--          square-->
-<!--          @click="mouseCollectMode = mode"-->
-<!--        />-->
-<!--      </UFieldGroup>-->
-
       <UFormField label="Snap">
         <USwitch
           v-model="snap"
           size="xl"
         />
       </UFormField>
+      <UButton
+        v-if="!isShowingPropertiesPanel"
+        :active="true"
+        variant="subtle"
+        active-variant="solid"
+        :icon="isShowingPropertiesPanel ? icons.panelClose : icons.panelOpen"
+        aria-label="Properties"
+        class="ml-auto self-end"
+        :ui="{
+          leadingIcon: 'rotate-180'
+        }"
+        square
+        @click="showPropertiesPanel = !showPropertiesPanel"
+      />
     </div>
-    <div class="space-y-2">
-      <UFieldGroup
-        v-for="(group, index) in editorButtons"
-        :key="index"
-        orientation="vertical"
-      >
-        <UTooltip
-          v-for="button in group"
-          :key="button.id"
-          :kbds="button.kbds"
-          :text="button.label"
-          :delay-duration="0"
-          :content="{
-            align: 'center',
-            side: 'right',
-            sideOffset: 0,
-          }"
-          :ui="{
-            kbds: 'inline-flex',
-          }"
-          arrow
-        >
-          <UButton
-            :icon="button.icon"
-            :active="unref(button.active)"
-            variant="subtle"
-            active-variant="solid"
-            size="lg"
-            square
-            @click="button.onClick"
-          />
-        </UTooltip>
-      </UFieldGroup>
-    </div>
+    <EditorToolbar class="col-start-1" :groups="toolbarGroups"/>
     <svg
       id="floor-plan-editor-svg"
       ref="floorPlanEditorSvgRef"
-      class="bg-white/75 touch-none place-self-stretch"
-      :class="{
-        '**:select-none': mode !== 'text',
-        '**:cursor-default': mode === 'select',
-        'cursor-grab': mode === 'pan' && !isMouseDown,
-        'cursor-grabbing': mode === 'pan' && isMouseDown,
-        'cursor-move': mode === 'move',
-        'cursor-text': mode === 'text',
-      }"
-      @mousedown="mouseDown = true"
-      @mouseup="mouseDown = false"
+      class="bg-white/75 touch-none place-self-stretch border-1 col-start-2 row-start-2"
+      :class="[
+        isShowingPropertiesPanel ? 'col-span-1' : 'col-span-2',
+        {
+          '**:select-none': mode !== 'text',
+          '**:cursor-default': mode === 'select',
+          'cursor-grab': mode === 'pan' && !isMouseDown,
+          'cursor-grabbing': mode === 'pan' && isMouseDown,
+          'cursor-move': mode === 'move',
+          'cursor-text': mode === 'text',
+        }
+      ]"
+      @click="handleClick"
+      @mousedown="handleMouseDown"
+      @mouseup="handleMouseUp"
       @mousemove="handleMouseMove"
-      @wheel.prevent="handleZoom"
+      @wheel.prevent="handleWheel"
     >
       <defs>
         <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
@@ -401,16 +373,70 @@ provide('editor', editorState)
           fill="url(#grid-sm)"
         />
 
+        <!-- Buildings -->
+        <PlanBuilding
+          v-for="building in buildings"
+          :key="building.id"
+          :building="building"
+        />
+
         <!-- Rooms -->
-        <RoomPlan
+
+        <PlanRoom
           v-for="(room, index) in rooms"
           :key="room.id"
           v-model="rooms[index]!"
           :pixel-per-meter="ppm"
-          :snap
           :editor-mode="mode"
+          @pointerenter.stop="handleHover(room)"
+        />
+
+        <!-- Cursor -->
+        <rect
+          v-if="cursorRect"
+          :x="cursorRect.x"
+          :y="cursorRect.y"
+          :width="cursorRect.width"
+          :height="cursorRect.height"
+          class="fill-none"
+        />
+
+        <line
+          v-if="cursorLine"
+          :x1="cursorLine.x1"
+          :y1="cursorLine.y1"
+
+          :x2="cursorLine.x2"
+          :y2="cursorLine.y2"
         />
       </g>
     </svg>
+    <UCard
+      v-if="isShowingPropertiesPanel"
+      class="col-start-3 row-start-1 row-span-2 mt-0.5"
+      :ui="{
+        header: 'flex gap-4 items-center',
+      }"
+    >
+      <template #header>
+        <UButton
+          :active="!isShowingPropertiesPanel"
+          variant="subtle"
+          active-variant="solid"
+          :icon="icons.panelClose"
+          aria-label="Properties"
+          class="ml-auto self-end"
+          :ui="{
+            leadingIcon: 'rotate-180'
+          }"
+          square
+          @click="showPropertiesPanel = !showPropertiesPanel"
+        />
+        <h2>Properties</h2>
+      </template>
+      <template #default>
+        <pre>{{ selectedEntity }}</pre>
+      </template>
+    </UCard>
   </div>
 </template>
