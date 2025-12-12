@@ -40,7 +40,7 @@ export const useEditorToolbar = (
           toolName: 'Select',
           label: 'Select',
           kbds: ['s'],
-          icon: icons.select,
+          icon: icons.selectTool,
           onClick: () => activeTool.value = 'select',
         },
         {
