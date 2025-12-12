@@ -1,8 +1,9 @@
-import type { EnumType } from '../types/utilities.ts'
+import type { EnumType } from '../../general/types/utilities.ts'
 import type { IconifyIcon } from '@iconify/types'
 import {addIcon, buildIcon, type IconifyIconBuildResult} from '@iconify/vue'
 import {
   FontAwesomeBrands,
+  Huge,
   Lucide,
   Material,
   StreamlinePixel,
@@ -10,7 +11,7 @@ import {
   type LucideIconNames,
   type MaterialIconNames,
   type StreamlinePixelIconNames,
-  type IconName,
+  type IconName, type HugeIconNames,
 } from "./iconPacksHeavy.ts";
 
 export const IconProvider = {
@@ -18,14 +19,12 @@ export const IconProvider = {
   fontAwesomeBrands: 'fa6-brands',
   streamlinePixel: 'streamline-pixel',
   material: 'mdi',
+  huge: 'hugeicons',
 } as const
 
 export type IconProvider = EnumType<typeof IconProvider>
 
 export type IconRegister = Partial<Record<string, IconName>>
-
-// const breaker = buildIcon(LucideIcons.beaker)
-// addIcon('beaker', breaker)
 
 export const nuxtUiIcons = {
   arrowDown: 'lucide:arrow-down',
@@ -80,10 +79,10 @@ export const iconDefinitions = {
   projects: 'lucide:file-stack',
   logo: 'streamline-pixel:building-real-eastate-project-blueprint',
   floorPlan: 'streamline-pixel:building-real-eastate-project-blueprint',
+  svg: 'lucide:code-xml',
   client: 'lucide:square-user-round',
   hand: 'lucide:hand',
   move: 'lucide:move',
-  cursor: 'lucide:mouse-pointer',
   text: 'lucide:text-cursor',
   delete: 'lucide:trash',
   edit: 'lucide:pencil',
@@ -107,6 +106,12 @@ export const iconDefinitions = {
   vent: 'mdi:view-sequential-outline',
   extractor: 'mdi:fan',
   door: 'mdi:door-open',
+  editNodeTool: 'hugeicons:cursor-edit-02',
+  editNodeToolCursor: 'hugeicons:cursor-02',
+  selectTool: 'hugeicons:cursor-rectangle-selection-01',
+  selectToolCursor: 'hugeicons:cursor-01',
+  selectToolCursorAdd: 'hugeicons:cursor-add-selection-01',
+  selectToolCursorRemove: 'hugeicons:cursor-remove-selection-01',
 } as const
 
 
@@ -146,6 +151,20 @@ export async function registerIcon(icon: IconName) {
 
   let iconData: IconifyIconBuildResult
   switch (provider) {
+    case IconProvider.fontAwesomeBrands:
+      iconData = buildIcon(FontAwesomeBrands.icons[name as FontAwesomeBrandsIconNames], {
+        width: FontAwesomeBrands.width,
+        height: FontAwesomeBrands.height,
+      })
+      break
+
+    case IconProvider.huge:
+      iconData = buildIcon(Huge.icons[name as HugeIconNames], {
+        width: Huge.width,
+        height: Huge.height,
+      })
+      break
+
     case IconProvider.lucide:
       iconData = buildIcon(Lucide.icons[name as LucideIconNames], {
         width: Lucide.width,
@@ -155,10 +174,10 @@ export async function registerIcon(icon: IconName) {
       iconData.attributes
       break
 
-    case IconProvider.fontAwesomeBrands:
-      iconData = buildIcon(FontAwesomeBrands.icons[name as FontAwesomeBrandsIconNames], {
-        width: FontAwesomeBrands.width,
-        height: FontAwesomeBrands.height,
+    case IconProvider.material:
+      iconData = buildIcon(Material.icons[name as MaterialIconNames], {
+        width: Material.width,
+        height: Material.height,
       })
       break
 
@@ -166,13 +185,6 @@ export async function registerIcon(icon: IconName) {
       iconData = buildIcon(StreamlinePixel.icons[name as StreamlinePixelIconNames], {
         width: StreamlinePixel.width,
         height: StreamlinePixel.height,
-      })
-      break
-
-    case IconProvider.material:
-      iconData = buildIcon(Material.icons[name as MaterialIconNames], {
-        width: Material.width,
-        height: Material.height,
       })
       break
 
