@@ -205,3 +205,7 @@ export async function registerIcon(icon: IconName) {
   //
   // addIcon(icon, data)
 }
+
+export type {
+  IconName,
+}
