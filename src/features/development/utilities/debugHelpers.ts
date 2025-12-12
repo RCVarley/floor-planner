@@ -321,3 +321,65 @@ function collapseNestedObject(input: PlainObject): PlainObject {
 export function compareCollapsed<T>(first: MaybeRef<T>, second: MaybeRef<T>, returnFalse = false): any {
   return collapseNestedObject(compare(first, second) ?? (returnFalse ? false : "No changes found"))
 }
+
+export function logGroup<RT>(groupName: string, fn: () => RT, after?: Record<PropertyKey, MaybeRef<any>>): RT {
+  console.group(groupName)
+  const result = fn()
+
+  if (after) {
+    console.log("After:")
+    for (const [key, value] of Object.entries(after)) {
+      console.log(`${key}:`, unref(value))
+    }
+  }
+  console.groupEnd()
+  return result
+}
+
+export function logDiffGroup<RT>(groupName: string, values: Record<PropertyKey, MaybeRef<any>>, fn: () => RT): RT {
+  const before: Record<PropertyKey, any> = {}
+  if (values) {
+    for (const [key, value] of Object.entries(values)) {
+      values[key] = unref(value)
+    }
+  }
+
+  const result = fn()
+
+  const after: Record<PropertyKey, any> = {}
+  if (values) {
+    for (const [key, value] of Object.entries(values)) {
+      values[key] = unref(value)
+    }
+  }
+
+  const diff = compare(before, after, false)
+  if (diff) {
+    console.group(groupName)
+    console.log(diff)
+    console.groupEnd()
+  }
+  return result
+}
+
+export const logNote = (name: string, notes: MaybeRef<Array<string>>) => {
+  const recentItem = unref(notes).at(0)
+
+  if (!recentItem) {
+    unref(notes).unshift(name)
+    return
+  }
+
+  const [lastItemName, lastItemCount] = recentItem.split(' x')
+  if (lastItemName !== name) {
+    unref(notes).unshift(name)
+    return
+  }
+
+  if (lastItemCount) {
+    unref(notes)[0] = `${name} x${Number(lastItemCount) + 1}`
+    return
+  }
+
+  unref(notes)[0] = `${name} x2`
+}
