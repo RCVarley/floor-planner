@@ -1,11 +1,10 @@
 import {computed, type ComputedRef, type ModelRef, ref, type Ref} from "vue"
-import {extractShortcuts, useExtendedShortcuts} from "@/composables/useShortcuts.ts"
-import type {EditorActiveEntity, EditorDrawMode, ToolName, Point} from "@/types/svgEditor.ts";
-import {round} from "@/utils/maths.ts";
-import type {BaseFloorPlanEntity} from "@/types/floorPlanEntities/floorPlan.ts";
-import type {ToolbarButtonGroup} from "@/types/toolbarButton.ts";
+import {extractShortcuts, useExtendedShortcuts} from "@editor/composables/useShortcuts.ts"
+import type {EditorToolName, Point} from "@editor/types/svgEditor.ts"
+import {round} from "@/features/general/utilities/maths.ts"
+import type {ToolbarButtonGroup} from "@editor/types/toolbarButton.ts"
 
-export const useEditorControls = (
+export const useEditorControls = <EntityType extends { id: string, __brand: string }>(
   {
     mode,
     pan,
@@ -14,8 +13,7 @@ export const useEditorControls = (
     onClick,
     toolbarGroups,
   }: {
-    mode: Ref<ToolName>
-    drawMode: Ref<EditorDrawMode | null>
+    mode: Ref<EditorToolName>
     pan: ModelRef<Point>
     scale: ModelRef<number>
     mousePosition: Ref<Point | null>
@@ -26,7 +24,7 @@ export const useEditorControls = (
   const mouseDown = ref(false)
   const isMouseDown = computed(() => forcePan.value || mouseDown.value)
 
-  let modeStorage: ToolName | null = null
+  let modeStorage: EditorToolName | null = null
   useExtendedShortcuts({
     ...extractShortcuts(toolbarGroups),
     ' ': {
@@ -112,13 +110,13 @@ export const useEditorControls = (
     }
     console.groupEnd()
   }
-  const activeEntity = ref<EditorActiveEntity | null>(null)
+  // const activeEntity = ref<EditorActiveEntity | null>(null)
 
-  const handleHover = (entity: BaseFloorPlanEntity) => {
-    activeEntity.value = {
-      id: entity.id,
-      type: entity.__brand
-    }
+  const handleHover = (_entity: EntityType) => {
+    // activeEntity.value = {
+    //   id: entity.id,
+    //   type: entity.__brand
+    // }
   }
 
   return {

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import {unref} from "vue"
-import type {ToolbarButtonGroup} from "@/types/toolbarButton.ts";
+import type {ToolbarButtonGroup} from "@editor/types/toolbarButton.ts"
+import type {EditorToolName} from "@editor/types/svgEditor.ts"
 
 defineProps<{
   groups: ToolbarButtonGroup[]
+  activeToolName: EditorToolName
 }>()
 
 </script>
@@ -33,7 +34,7 @@ defineProps<{
       >
         <UButton
           :icon="button.icon"
-          :active="unref(button.active)"
+          :active="button.toolName === activeToolName"
           variant="subtle"
           active-variant="solid"
           size="lg"

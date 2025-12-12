@@ -1,8 +1,17 @@
 import {type ModelRef, ref, watch} from "vue"
 
-export const useEditorGrid = ({ snap, scale }: { snap: ModelRef<boolean>, scale: ModelRef<number> }) => {
+export const useEditorGrid = (
+  {
+    snap,
+    scale
+  }: {
+    snap: ModelRef<boolean>
+    scale: ModelRef<number>
+  }) => {
   const scaleThreshold = ref<'sm' | 'md' | 'lg'>('lg')
   const gridSnapSize = ref(0)
+  const gridSize = 100
+  const gridExtent = 10000
 
   watch(scale, () => {
     let threshold: 'sm' | 'md' | 'lg'
@@ -33,5 +42,7 @@ export const useEditorGrid = ({ snap, scale }: { snap: ModelRef<boolean>, scale:
   return {
     scaleThreshold,
     gridSnapSize,
+    gridSize,
+    gridExtent,
   }
 }

@@ -1,5 +1,5 @@
 import {type MaybeRef, unref} from "vue"
-import type {Point} from "@/types/svgEditor.ts";
+import type {Point} from "@editor/types/svgEditor.ts"
 
 export function addPoints(...points: Point[]): Point {
   if (!points.length) throw new Error("No points to add")
@@ -96,10 +96,28 @@ export function extrapolateRectanglePolygon(xOrP1: number | Point, yOrP2: number
   ]
 }
 
-export function getPointerPosition(e: PointerEvent, panOffset: MaybeRef<Point>, scale: MaybeRef<number>) {
+export function getPointerPosition(e: PointerEvent, x: MaybeRef<number>, y: MaybeRef<number>, scale: MaybeRef<number>): Point
+export function getPointerPosition(e: PointerEvent, panOffset: MaybeRef<Point>, scale: MaybeRef<number>): Point
+export function getPointerPosition(e: PointerEvent, xOrPanOffset: MaybeRef<Point | number>, yOrScale: MaybeRef<number>, scaleOrUndefined?: MaybeRef<number>): Point {
+  let x: number
+  let y: number
+  let scale: number
+
+  const panOffset = unref(xOrPanOffset)
+  if (typeof panOffset === 'object') {
+    x = panOffset.x
+    y = panOffset.y
+    scale = unref(yOrScale)
+  }
+  else {
+    x = unref(xOrPanOffset) as number
+    y = unref(yOrScale)
+    scale = unref(scaleOrUndefined) as number
+  }
+
   return {
-    x: Math.round((e.offsetX + unref(panOffset).x) / unref(scale)),
-    y: Math.round((e.offsetY + unref(panOffset).y) / unref(scale))
+    x: Math.round((e.offsetX + x) / scale),
+    y: Math.round((e.offsetY + y) / scale),
   }
 }
 

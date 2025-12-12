@@ -1,16 +1,16 @@
-import type {ToolbarButtonGroup} from "@/types/toolbarButton.ts";
-import {brandedId} from "@/utils/ids.ts";
-import {computed, type Ref, unref} from "vue";
-import type {ToolName} from "@/types/svgEditor.ts";
-import appConfig from "@/app.config.ts";
+import type {ToolbarButtonGroup} from "@editor/types/toolbarButton.ts"
+import {brandedId} from "@/features/general/utilities/ids.ts"
+import {computed, type Ref, unref} from "vue"
+import type {EditorToolName} from "@editor/types/svgEditor.ts"
+import appConfig from "@/app.config.ts"
 
 const icons = appConfig.ui.icons
 
 export const useEditorToolbar = (
   {
-    mode,
+    activeTool,
   }: {
-    mode: Ref<ToolName>
+    activeTool: Ref<EditorToolName>
   },
   ...toolbarGroups: ToolbarButtonGroup[][]
 ) => {
@@ -21,35 +21,35 @@ export const useEditorToolbar = (
       buttons: [
         {
           id: brandedId('pan'),
+          toolName: 'pan',
           label: 'Pan',
           icon: icons.hand,
           kbds: ['p'],
-          active: computed(() => mode.value === 'pan'),
-          onClick: () => mode.value = 'pan',
+          onClick: () => activeTool.value = 'pan',
         },
         {
           id: brandedId('move'),
+          toolName: 'move',
           label: 'Move',
           icon: icons.move,
           kbds: ['m'],
-          active: computed(() => mode.value === 'move'),
-          onClick: () => mode.value = 'move',
+          onClick: () => activeTool.value = 'move',
         },
         {
           id: brandedId('Select'),
+          toolName: 'Select',
           label: 'Select',
           kbds: ['s'],
-          icon: icons.cursor,
-          active: computed(() => mode.value === 'select'),
-          onClick: () => mode.value = 'select',
+          icon: icons.select,
+          onClick: () => activeTool.value = 'select',
         },
         {
           id: brandedId('Text'),
+          toolName: 'Text',
           label: 'Text',
           kbds: ['t'],
           icon: icons.text,
-          active: computed(() => mode.value === 'text'),
-          onClick: () => mode.value = 'text',
+          onClick: () => activeTool.value = 'text',
         },
       ]
     },
