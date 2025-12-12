@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import appConfig from "@/app.config.ts"
-import DashboardPanel from "@/layouts/DashboardPanel.vue";
-import {reactive} from "vue";
-
-import type {Room} from "@/types/floorPlanEntities/room.ts";
+import DashboardPanel from "@/layouts/DashboardPanel.vue"
+import {reactive} from "vue"
+import type {Room} from "@floor-plan/types/room.ts"
 
 const icons = appConfig.ui.icons
 

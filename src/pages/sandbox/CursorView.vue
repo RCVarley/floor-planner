@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import appConfig from "@/app.config.ts"
 import DashboardPanel from "@/layouts/DashboardPanel.vue";
-import DebugSquare from "@/components/debug/DebugSquare.vue";
+import DebugSquare from "@/features/development/components/DebugSquare.vue";
 
 const icons = appConfig.ui.icons
 
 const examples = [
   ['auto', 'cursor-auto'],
   ['default', 'cursor-default'],
+  ['select', 'cursor-select'],
+  ['add selection', 'cursor-select--add'],
+  ['remove selection', 'cursor-select--remove'],
   ['pointer', 'cursor-pointer'],
   ['wait', 'cursor-wait'],
   ['text', 'cursor-text'],
@@ -56,7 +59,7 @@ const examples = [
       :key="key"
       :class="val"
     >
-      {{ val }}
+      {{ key }}
     </DebugSquare>
   </DashboardPanel>
 </template>

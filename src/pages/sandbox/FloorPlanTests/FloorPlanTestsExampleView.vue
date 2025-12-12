@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {reactive} from "vue"
-import {createPlan} from "@/utils/floorPlan.ts"
-import FloorPlanEditorV2 from '@editor/components/FloorPlanEditor.vue'
+import {createPlan} from "@floor-plan/utilities/floorPlan.ts"
 
 const { data, error } = createPlan()
 if (error) {
@@ -12,7 +11,7 @@ const plan = reactive(data)
 </script>
 
 <template>
-<FloorPlanEditorV2
+<SvgEditor
   v-model="plan"
 />
 </template>
