@@ -13,7 +13,7 @@ import {isSection, type Section, type SectionId} from "@/types/floorPlanEntities
 import {type Fixture, type FixtureId, isFixture} from "@/types/floorPlanEntities/fixture.ts";
 import {isLabel, type Label} from "@/types/floorPlanEntities/label.ts";
 import {NamedError} from "@/utils/errorHandling.ts";
-import EditorToolbar from "@/components/floorPlanEditor/EditorToolbar.vue";
+import EditorToolbar from "@/components/__floorPlanEditor/EditorToolbar.vue";
 import AppConfig from "@/app.config.ts";
 import {useDebug} from "@/composables/useDebug.ts";
 

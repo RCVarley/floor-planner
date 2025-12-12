@@ -6,7 +6,7 @@ import {
   useTemplateRef,
 } from "vue"
 import type {RoomPlanSection} from "@/types/floorPlanEntities/floorPlan.ts"
-import type {ToolName} from "@/components/floorPlanEditor/FloorPlanEditor.vue"
+import type {ToolName} from "FloorPlanEditor.vue.old"
 import {distanceBetween, polygonArea, snapToGrid} from "@/utils/points.ts"
 import {useDraggable} from "@vueuse/core";
 import {useDebug} from "@/composables/useDebug.ts";
@@ -166,7 +166,7 @@ const offset = computed(() => room.value.offset)
 <!--    <pre>{{ drag.isDragging }}</pre>-->
 <!--  </Teleport>-->
   <g :id="room.id">
-    <RoomSection
+    <RoomSectionVue
       v-for="(section, sectionIndex) in room.sections"
       :key="section.id"
       v-model="room.sections[sectionIndex]!"
