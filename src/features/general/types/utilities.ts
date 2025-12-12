@@ -1,4 +1,4 @@
-import type {IsoDateTime} from "@/utils/dateHelpers.ts";
+import type {IsoDateTime} from "@/features/general/utilities/dateHelpers.ts";
 
 /**
  * # Unpacked

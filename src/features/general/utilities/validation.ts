@@ -1,4 +1,4 @@
-import type {EnumType} from '@/types/utilities.ts'
+import type {EnumType} from '@/features/general/types/utilities.ts'
 
 export const ValidationMessages = {
   noEmpty: 'Cannot be empty',
