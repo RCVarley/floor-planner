@@ -1,5 +1,5 @@
 import type { AppProps } from '@nuxt/ui'
-import {type IconRegister, iconDefinitions, registerIcon} from "./utils/icons.ts"
+import {type IconRegister, iconDefinitions, registerIcon} from "./features/icons/utilities/icons.ts"
 
 export const app: AppProps = {
   tooltip: {
@@ -9,7 +9,7 @@ export const app: AppProps = {
 
 /**
  * # registerIcons
- * @description Registers  icons with the Iconify library.
+ * @description Registers icons with the Iconify library.
  */
 export async function registerIcons() {
   const promises: Promise<void>[] = []
@@ -23,7 +23,7 @@ export async function registerIcons() {
 }
 
 /**
- * The `ui` constant is an object that encapsulates user interface-related configurations
+ * The `ui` constant is an object that encapsulates user-interface-related configurations
  * for the application. It contains a property `icons` which provides a definition of
  * the icons used in the UI, ensuring type safety and consistency throughout the application.
  *

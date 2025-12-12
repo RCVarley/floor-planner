@@ -19,7 +19,7 @@ defineSlots<{
 <template>
   <UDashboardPanel
     :ui="{
-      body: `@container ${ui?.body ?? ''}`,
+      body: `@container ${ui?.body ?? ''}`
     }"
   >
     <template #header>

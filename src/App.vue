@@ -3,14 +3,17 @@ import type {NavigationMenuItem} from "@nuxt/ui/components/NavigationMenu.vue"
 import appConfig from "@/app.config.ts"
 import {useDevStore} from "@/stores/devStore.ts"
 import {storeToRefs} from "pinia"
-import {computed, ref} from "vue"
-import {useDebug} from "@/composables/useDebug.ts"
+import {computed, ref, watch} from "vue"
+import {useDebug} from "@/features/development/composables/useDebug.ts"
 import {type CustomRouteRecordRaw, routes} from './router.ts'
 
 const { isDebug } = storeToRefs(useDevStore())
 const { debugData } = useDebug()
-const debugPanel = ref(false)
 
+const showDebugPanel = ref(false)
+watch([debugData, isDebug], ([_debugData, _isDebug]) => {
+  showDebugPanel.value = _isDebug && !!Object.keys(_debugData).length
+}, { deep: true, immediate: true })
 const icons = appConfig.ui.icons
 
 function routeToNavItem(route: CustomRouteRecordRaw): NavigationMenuItem {
@@ -19,6 +22,8 @@ function routeToNavItem(route: CustomRouteRecordRaw): NavigationMenuItem {
     icon: route.meta.icon,
     to: route,
     children: route.children?.map(r => routeToNavItem(r)),
+    defaultOpen: route.children ? true : undefined,
+    popover: route.children ? true : undefined,
   }
 }
 
@@ -45,17 +50,6 @@ const endItems = computed<NavigationMenuItem[][]>(() => [
         linkLeadingIcon: isDebug.value ? 'text-warning' : '',
       },
     },
-    // {
-    //   label: 'Debug panel',
-    //   slot: 'panel' as const,
-    //   onSelect() {
-    //     debugPanel.value = !debugPanel.value
-    //   },
-    //   icon: isDebug.value ? icons.bug : icons.bugOff,
-    //   ui: {
-    //     linkLeadingIcon: debugPanel.value ? 'text-warning' : '',
-    //   },
-    // }
   ],
 ])
 </script>
@@ -93,7 +87,7 @@ const endItems = computed<NavigationMenuItem[][]>(() => [
             :items="menuItems"
             :collapsed
             orientation="vertical"
-            :tooltip="!!collapsed"
+            :tooltip="true"
             class="grow"
           >
             <template #list-trailing>
@@ -115,7 +109,7 @@ const endItems = computed<NavigationMenuItem[][]>(() => [
 
                 <template #panel-trailing>
                   <USwitch
-                    v-model="debugPanel"
+                    v-model="showDebugPanel"
                     size="md"
                     aria-label="Show debug panel"
                     @click.stop
@@ -124,10 +118,6 @@ const endItems = computed<NavigationMenuItem[][]>(() => [
               </UNavigationMenu>
             </template>
           </UNavigationMenu>
-<!--          <pre-->
-<!--            v-if="isDebug"-->
-<!--            id="debug-data"-->
-<!--          >{{debugData}}</pre>-->
         </template>
 
         <template #footer>
@@ -137,12 +127,12 @@ const endItems = computed<NavigationMenuItem[][]>(() => [
 
       <UDrawer
         title="Debug panel"
-        description="Teleport debug data here"
+        description="Debug data here"
         direction="right"
         class="h-full m-4"
         :overlay="false"
         :modal="false"
-        :open="isDebug"
+        :open="showDebugPanel"
       >
         <template #body>
           <div id="debug-panel">
@@ -158,7 +148,4 @@ const endItems = computed<NavigationMenuItem[][]>(() => [
 </template>
 
 <style>
-/*.unm-separator:last-of-type {*/
-/*  @apply mt-auto;*/
-/*}*/
 </style>

@@ -3,19 +3,15 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import ui from '@nuxt/ui/vite'
-import { nuxtUiIcons } from './src/utils/icons.ts'
+import { nuxtUiIcons } from './src/features/icons/utilities/icons.ts'
 
-// https://vite.dev/config/
-// import path from 'node:path';
-// import { fileURLToPath } from 'node:url';
-// import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
-// import { playwright } from '@vitest/browser-playwright';
-// const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
-
-// More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
   plugins: [
-    vue(),
+    vue({
+      exclude: [
+        '*/**/*.old',
+      ],
+    }),
     vueDevTools({
       launchEditor: 'webstorm',
     }),
@@ -29,8 +25,8 @@ export default defineConfig({
         icons: nuxtUiIcons
       },
       autoImport: {
-        exclude: [
-          'src/components',
+        dirs: [
+          'src/features/**/composables',
         ],
         imports: [
           {
@@ -38,14 +34,24 @@ export default defineConfig({
               'defineShortcuts',
             ]
           }
-        ]
+        ],
+      },
+      components: {
+        dirs: [
+          'src/features/**/components',
+        ],
+        deep: true,
+        exclude: [
+          'src/components',
+        ],
       },
     }),
   ],
   resolve: {
     alias: {
       '@': '/src',
-      "@editor": "/src/features/floorPlanEditorV2/*"
+      "@editor": "/src/features/svgEditor",
+      "@floor-plan": "/src/features/floorPlanEditor",
     }
   },
   // test: {
