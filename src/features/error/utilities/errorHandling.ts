@@ -1,4 +1,4 @@
-import type {ErrorCode} from "../types/error.ts"
+import type {ErrorCode} from "../types/errorHandling.ts"
 
 /**
  * # NamedError
@@ -20,11 +20,13 @@ export class NamedError<ErrorCodeType extends ErrorCode> extends Error {
 }
 
 /**
- * # reportError
+ * # handleError
  * @description A standard error reporting function that can be updated to use 3rd party error tracking services like Sentry, Bugsnag, etc.
  * @param error The error to report
  */
-export function reportError(error: Error) {
+export function handleError(error: Error | null) {
+  if (!error) return
+
   if (error instanceof NamedError) {
     console.error(`${error.name}: ${error.message}`)
     return
@@ -66,7 +68,7 @@ export function succeed<ResultType>(data: ResultType): Success<ResultType> {
  * @template T The type of the data
  * @description Represents a successful result with data of type T
  */
-type Success<T> = {
+export type Success<T> = {
   data: T
   error: null
 }
@@ -76,7 +78,7 @@ type Success<T> = {
  * @template E The type of the error
  * @description Represents a failed result with error of type E
  */
-type Failure<E> = {
+export type Failure<E> = {
   data: null
   error: E
 }
