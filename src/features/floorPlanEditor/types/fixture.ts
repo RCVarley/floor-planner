@@ -1,4 +1,4 @@
-import type {BaseFloorPlanEntity, FloorPlanEntity} from "@/types/floorPlanEntities/floorPlan.ts";
+import type {BaseFloorPlanEntity, FloorPlanEntity} from "@floor-plan/types/floorPlan.ts"
 
 export type FixtureId = string & { __brand: 'FixtureId' }
 

@@ -1,5 +1,5 @@
-import type {BaseFloorPlanEntity, FloorPlanEntity} from "@/types/floorPlanEntities/floorPlan.ts";
-import type {Point} from "@/types/svgEditor.ts";
+import type {BaseFloorPlanEntity, FloorPlanEntity} from "@floor-plan/types/floorPlan.ts"
+import type {Point} from "@editor/types/svgEditor.ts"
 
 export type SectionId = string & { __brand: 'SectionId' }
 

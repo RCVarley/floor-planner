@@ -1,15 +1,15 @@
 import type {
   FloorPlan, FloorPlanEntity, EntityStub, BaseFloorPlanEntity, EntityTypeName
-} from "@/types/floorPlanEntities/floorPlan.ts";
-import {uid} from "@/utils/ids.ts";
-import type {PartialPick} from "@/types/utilities.ts";
-import {fail, type Result, succeed} from "@/utils/errorHandling.ts";
-import {type Building} from "@/types/floorPlanEntities/building.ts";
-import type {Floor} from "@/types/floorPlanEntities/floor.ts";
-import type {Room} from "@/types/floorPlanEntities/room.ts";
-import type {PolygonalSection, RectangularSection, TriangularSection} from "@/types/floorPlanEntities/section.ts";
-import type {Fixture} from "@/types/floorPlanEntities/fixture.ts";
-import type {Label} from "@/types/floorPlanEntities/label.ts";
+} from "@floor-plan/types/floorPlan.ts"
+import {uid} from "@/features/general/utilities/ids.ts"
+import type {PartialPick} from "@/features/general/types/utilities.ts"
+import {fail, type Result, succeed, type Success} from "@/features/error/utilities/errorHandling.ts"
+import {type Building} from "@floor-plan/types/building.ts"
+import type {Floor} from "@floor-plan/types/floor.ts"
+import type {Room} from "@floor-plan/types/room.ts"
+import type {PolygonalSection, RectangularSection, TriangularSection} from "@floor-plan/types/section.ts"
+import type {Fixture} from "@floor-plan/types/fixture.ts"
+import type {Label} from "@floor-plan/types/label.ts"
 
 function createParent<ParentEntityType extends BaseFloorPlanEntity, ParentEntityTypeName extends EntityTypeName>(entity: ParentEntityType | undefined, parentEntityTypeName: ParentEntityTypeName): EntityStub<ParentEntityTypeName> | null {
   if (!entity) {
@@ -22,7 +22,7 @@ function createParent<ParentEntityType extends BaseFloorPlanEntity, ParentEntity
   }
 }
 
-export function createPlan(FloorPlan: Partial<FloorPlan> = {}): Result<FloorPlan> {
+export function createPlan(FloorPlan: Partial<FloorPlan> = {}): Success<FloorPlan> {
   return succeed({
     id: uid('plan'),
     name: 'Plan name',

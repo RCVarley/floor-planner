@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type {Building} from "@/types/floorPlanEntities/building.ts"
+import type {Building} from "@floor-plan/types/building.ts"
 
 const { building } = defineProps<{
   building: Building

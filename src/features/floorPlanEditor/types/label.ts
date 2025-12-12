@@ -1,5 +1,5 @@
-import type {BaseFloorPlanEntity, EntityStub, EntityTypeName} from "@/types/floorPlanEntities/floorPlan.ts";
-import type {Point} from "@/types/svgEditor.ts";
+import type {BaseFloorPlanEntity, EntityStub, EntityTypeName} from "@floor-plan/types/floorPlan.ts"
+import type {Point} from "@editor/types/svgEditor.ts"
 
 export type LabelId = string & { __brand: 'LabelId' }
 

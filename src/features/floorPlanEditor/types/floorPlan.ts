@@ -1,10 +1,10 @@
-import type {Building} from "@/types/floorPlanEntities/building.ts";
-import type {Floor} from "@/types/floorPlanEntities/floor.ts";
-import type {Room} from "@/types/floorPlanEntities/room.ts";
-import type {Section} from "@/types/floorPlanEntities/section.ts";
-import type {Fixture} from "@/types/floorPlanEntities/fixture.ts";
-import type {Label, LabelId} from "@/types/floorPlanEntities/label.ts";
-import type {Point} from "@/types/svgEditor.ts";
+import type {Building} from "@floor-plan/types/building.ts"
+import type {Floor} from "@floor-plan/types/floor.ts"
+import type {Room} from "@floor-plan/types/room.ts"
+import type {Section} from "@floor-plan/types/section.ts"
+import type {Fixture} from "@floor-plan/types/fixture.ts"
+import type {Label, LabelId} from "@floor-plan/types/label.ts"
+import type {Point} from "@editor/types/svgEditor.ts"
 
 export type FloorPlanId = string & { __brand: 'FloorPlanId' }
 

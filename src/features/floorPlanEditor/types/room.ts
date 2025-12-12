@@ -1,7 +1,7 @@
-import type {BaseFloorPlanEntity, FloorPlanEntity} from "@/types/floorPlanEntities/floorPlan.ts";
-import type {SectionId} from "@/types/floorPlanEntities/section.ts";
-import type {FixtureId} from "@/types/floorPlanEntities/fixture.ts";
-import type {Point} from "@/types/svgEditor.ts";
+import type {BaseFloorPlanEntity, FloorPlanEntity} from "@floor-plan/types/floorPlan.ts"
+import type {SectionId} from "@floor-plan/types/section.ts"
+import type {FixtureId} from "@floor-plan/types/fixture.ts"
+import type {Point} from "@editor/types/svgEditor.ts"
 
 export type RoomId = string & { __brand: 'RoomId' }
 export type WallId = string & { __brand: 'WallId' }
