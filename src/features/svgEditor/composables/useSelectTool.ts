@@ -5,9 +5,7 @@ import {
   type ModelRef,
   type Reactive,
   reactive,
-  ref,
   type Ref,
-  watch
 } from "vue"
 import type {Point} from "@editor/types/svgEditor.ts"
 import {NamedError} from "@/features/error/utilities/errorHandling.ts"
@@ -15,34 +13,18 @@ import {getPointerPosition} from "@editor/utilities/points.ts"
 import {brandedId} from "@/features/general/utilities/ids.ts"
 import AppConfig from "@/app.config.ts"
 import type {ToolbarButtonProps} from "@editor/types/toolbarButton.ts"
-import {useDebug} from "@/features/development/composables/useDebug.ts"
+import {type RectanglePreview, useEditorPreview} from "@editor/composables/useEditorPreview.ts";
+import type {CssClasses} from "@/features/general/types/vueHelperTypes.ts";
 
 const icons = AppConfig.ui.icons
-
-type SelectToolPreview = {
-  visible: true
-  x: number
-  y: number
-  width: number
-  height: number
-} | {
-  visible: false
-  x: number | null
-  y: number | null
-  width: number | null
-  height: number | null
-}
-
-export type CssClassObject = { [key: string]: boolean }
-export type CssClasses = string | CssClassObject | Array<string | CssClassObject>
 
 export interface ToolComposable {
   name: EditorToolName
   onEscape: () => void
   onPointerDown: (e: PointerEvent) => void
   onPointerMove: (e: PointerEvent, polygons: { id: string, points: Point[] }[]) => void
-  onPointerUp: (e: PointerEvent, polygons: { id: string, points: Point[] }[]) => void
-  preview: ComputedRef<SelectToolPreview>
+  onPointerUp: (e: PointerEvent) => void
+  preview: ComputedRef<RectanglePreview>
   reset: () => void
   selectedIds: Reactive<Set<string>>
   candidateSelectedIds: Reactive<Set<string>>
@@ -68,15 +50,7 @@ export const useSelectTool = (
     panY: Ref<number> | ModelRef<number>
     scale: Ref<number> | ModelRef<number>
   }): ToolComposable => {
-  const { debugData } = useDebug()
   const toolName = 'select'
-  const width = ref<number | null>(null)
-  const height = ref<number | null>(null)
-  const phase = ref<'idle' | 'armed' | 'dragging'>('idle')
-  const point1 = ref<Point | null>(null)
-  const point2 = ref<Point | null>(null)
-  const tlX = ref<number | null>()
-  const tlY = ref<number | null>()
   const clickThreshold = computed(() => 5 / scale.value)
   const selectedIds = reactive(new Set<string>())
   const candidateSelectedIds = reactive(new Set<string>())
@@ -88,73 +62,37 @@ export const useSelectTool = (
       return 'default'
     }
 
-    if (!isTargetSelected.value || phase.value === 'dragging') {
+    if (!isTargetSelected.value || editorPreview.phase.value === 'dragging') {
       return 'add'
     }
 
     return 'remove'
   })
-
-  const preview = computed(() => {
-    return {
-      visible: activeToolName.value === 'select'
-        && (
-          phase.value === 'armed'
-          || phase.value === 'dragging'
-        )
-        && point1.value
-        && width.value !== null
-        && height.value !== null,
-      x: tlX.value,
-      y: tlY.value,
-      width: width.value,
-      height: height.value,
-    } as SelectToolPreview
-  })
-
-  /**
-   * # reset()
-   * resets the phase and banding properties
-   */
-  const resetBoundingSquare = () => {
-    phase.value = 'idle'
-    tlX.value = null
-    tlY.value = null
-    width.value = null
-    height.value = null
-  }
+  const editorPreview = useEditorPreview(toolName, activeToolName)
 
   const checkInsideClickThreshold = (pointerPosition: Point) => {
-    if (!point1.value) {
+    if (!editorPreview.anchorPoint.value) {
       throw new NamedError('tool:select:not-found', 'No start point found for select tool')
     }
 
-    return Math.abs(pointerPosition.x - point1.value.x) < clickThreshold.value
-      && Math.abs(pointerPosition.y - point1.value.y) < clickThreshold.value
+    return Math.abs(pointerPosition.x - editorPreview.anchorPoint.value.x) < clickThreshold.value
+      && Math.abs(pointerPosition.y - editorPreview.anchorPoint.value.y) < clickThreshold.value
   }
 
   const getSelectCandidates = (polygons: { id: string, points: Point[] }[]) => {
-    if (phase.value === 'idle') {
+    if (editorPreview.phase.value === 'idle') {
       return
     }
 
-    if (!polygons.length || !preview.value.visible) {
+    if (!polygons.length || !editorPreview.preview.value.visible) {
       candidateSelectedIds.clear()
       return
     }
 
-    const filteredIds = polygons.filter(({ points }) => {
-      return points.some(point => {
-        return (
-          point.x >= tlX.value! && point.x <= tlX.value! + width.value!
-          && point.y >= tlY.value! && point.y <= tlY.value! + height.value!
-        )
-      })
-    }).map(({ id }) => id)
-
     candidateSelectedIds.clear()
-    for (const id of filteredIds) {
-      candidateSelectedIds.add(id)
+    for (const polygon of polygons) {
+      if (polygon.points.some(point => editorPreview.checkIfPointIsInside(point)))
+        candidateSelectedIds.add(polygon.id)
     }
   }
 
@@ -167,7 +105,7 @@ export const useSelectTool = (
   }
 
   const onSelect = (e: PointerEvent, id: string | null) => {
-    resetBoundingSquare()
+    editorPreview.reset()
     if (id === null) {
       selectedIds.clear()
       return
@@ -187,33 +125,31 @@ export const useSelectTool = (
     selectedIds.add(id)
   }
 
-  const lastPointerAction = ref<'pointerDown' | 'pointerMove' | 'pointerUp' | null>(null)
   /**
    * # onPointerDown
    * @param e pointer event
    */
   const onPointerDown = (e: PointerEvent) => {
-    if (phase.value !== 'idle') {
+    if (editorPreview.phase.value !== 'idle') {
       return
     }
 
-    phase.value = 'armed'
-    point1.value = getPointerPosition(e, { x: panX.value, y: panY.value }, scale)
+    editorPreview.phase.value = 'armed'
+    editorPreview.anchorPoint.value = getPointerPosition(e, { x: panX.value, y: panY.value }, scale)
   }
 
   /**
    * # onPointerUp(e, polygons)
    * @param e pointer event
-   * @param polygons list of polygons to select from
    */
-  const onPointerUp = (e: PointerEvent, polygons: { id: string, points: Point[] }[]) => {
-    if (phase.value === 'idle') {
+  const onPointerUp = (e: PointerEvent) => {
+    if (editorPreview.phase.value === 'idle') {
       return
     }
 
     const pointerPosition = getPointerPosition(e, panX, panY, scale)
 
-    if (!point1.value) {
+    if (!editorPreview.anchorPoint.value) {
       throw new NamedError('tool:select:not-found', 'No start point found for select tool')
     }
 
@@ -222,10 +158,8 @@ export const useSelectTool = (
       return
     }
 
-    point2.value = pointerPosition
-    getSelectCandidates(polygons)
     acceptSelectCandidates()
-    resetBoundingSquare()
+    editorPreview.reset()
   }
 
   /**
@@ -234,23 +168,15 @@ export const useSelectTool = (
    * @param polygons list of polygons to select from
    */
   const onPointerMove = (e: PointerEvent, polygons: { id: string, points: Point[] }[]) => {
-    if (phase.value === 'idle') {
+    if (activeToolName.value !== toolName || editorPreview.phase.value === 'idle') {
       return
     }
 
-    if (phase.value === 'armed') {
-      phase.value = 'dragging'
+    if (editorPreview.phase.value === 'armed') {
+      editorPreview.phase.value = 'dragging'
     }
 
-    if (!point1.value) {
-      throw new NamedError('tool:select:not-found', 'No start point found for select tool')
-    }
-
-    const pointerPosition = getPointerPosition(e, panX, panY, scale)
-    tlX.value = Math.min(pointerPosition.x, point1.value.x)
-    tlY.value = Math.min(pointerPosition.y, point1.value.y)
-    width.value = Math.abs(pointerPosition.x - point1.value.x)
-    height.value = Math.abs(pointerPosition.y - point1.value.y)
+    editorPreview.redraw(getPointerPosition(e, panX, panY, scale))
 
     if (selectionMethod.value === 'default') {
       selectedIds.clear()
@@ -274,45 +200,9 @@ export const useSelectTool = (
   }))
 
   const onEscape = () => {
-    resetBoundingSquare()
+    editorPreview.reset()
     selectedIds.clear()
   }
-
-  watch(
-    [
-      classes,
-      isShiftDown,
-      phase,
-      preview,
-      selectedIds,
-      candidateSelectedIds,
-    ], (
-      [
-        _classes,
-        _isShiftDown,
-        _phase,
-        _preview,
-        _selectedIds,
-        _tempSelectedIds,
-      ],
-    ) => {
-    debugData.value.selectTool = {
-      _isShiftDown,
-      _phase,
-      _preview,
-      _selectedIds,
-      _tempSelectedIds,
-      _classes,
-    }
-
-  })
-
-  watch(lastPointerAction, (val, old) => {
-    if (old !== null) {
-      console.groupEnd()
-    }
-    console.group(val)
-  })
 
   return {
     classes,
@@ -322,8 +212,8 @@ export const useSelectTool = (
     onPointerMove,
     onPointerUp,
     onSelect,
-    preview,
-    reset: resetBoundingSquare,
+    preview: editorPreview.preview,
+    reset: editorPreview.reset,
     selectedIds,
     candidateSelectedIds,
     toolbarButton,
