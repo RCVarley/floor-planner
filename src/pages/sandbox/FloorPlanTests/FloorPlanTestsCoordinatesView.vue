@@ -1,35 +1,40 @@
 <script setup lang="ts">
 import {reactive, ref} from "vue"
-import type {Room} from "@/types/floorPlan.ts"
-import {createRoom, createSection} from "@/utils/floorPlan.ts"
+import {createPlan} from "@floor-plan/utilities/floorPlan.ts"
 import { ui } from '@/app.config.ts'
+import type {FloorPlan} from "@floor-plan/types/floorPlan.ts"
+import {resetReactiveArray} from "@/features/general/utilities/reactivityHelpers.ts"
+import {handleError} from "@/features/error/utilities/errorHandling.ts"
 
 const icons = ui.icons
 
 function createDiagram() {
-  return createRoom({
-    sections: [
-      createSection({
-        polygon: [
-          {x: 0, y: 0},
-          {x: 0, y: 100},
-          {x: 100, y: 100},
-          {x: 100, y: 0},
-        ],
-      })
-    ],
-    offset: { x: 0, y: 0 },
+  const { data, error } = createPlan({
+    name: 'TestPlan',
+    buildings: [],
+    floors: [],
+    rooms: [],
+    sections: [],
+    fixtures: [],
+    labels: [],
   })
-}
 
-const rooms = reactive<Room[]>([createDiagram()])
-function resetRooms() {
-  const len = rooms.length
-  for (let i = 0; i < len; i++) {
-    rooms.pop()
+  if (error) {
+    handleError(error)
   }
 
-  rooms.push(createDiagram())
+  return data
+}
+
+const plan = reactive<FloorPlan>(createDiagram())
+function reset() {
+  resetReactiveArray(plan.buildings)
+  resetReactiveArray(plan.floors)
+  resetReactiveArray(plan.rooms)
+  resetReactiveArray(plan.sections)
+  resetReactiveArray(plan.fixtures)
+  resetReactiveArray(plan.labels)
+
   pan.value.x = 0
   pan.value.y = 0
   snap.value = false
@@ -47,26 +52,26 @@ const zooms = ref([1, 0.5, 2])
       <UButton
         :icon="icons.refresh"
         color="neutral"
-        @click="resetRooms"
+        @click="reset"
       />
     </Teleport>
 
     <FloorPlanEditor
-      v-model="rooms"
+      v-model="plan"
       v-model:pan="pan"
       v-model:snap="snap"
       v-model:zoom="zooms[0]"
     />
 
     <FloorPlanEditor
-      v-model="rooms"
+      v-model="plan"
       v-model:pan="pan"
       v-model:snap="snap"
       v-model:zoom="zooms[1]"
     />
 
     <FloorPlanEditor
-      v-model="rooms"
+      v-model="plan"
       v-model:pan="pan"
       v-model:snap="snap"
       v-model:zoom="zooms[2]"

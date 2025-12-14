@@ -91,7 +91,7 @@ export const routes: readonly CustomRouteRecordRaw[] = [
   {
     path: '/sandbox',
     name: 'sandbox',
-    redirect: () => ({ name: 'sandbox-floor-plan' }),
+    redirect: () => ({ name: 'sandbox-editor' }),
     meta: {
       label: 'Sandbox',
       icon: icons.flask,
@@ -99,17 +99,17 @@ export const routes: readonly CustomRouteRecordRaw[] = [
     },
     children: [
       {
-        path: '/sandbox/cursor',
+        path: 'cursor',
         name: 'sandbox-cursor',
         component: () => import('@/pages/sandbox/CursorView.vue'),
         meta: {
-          label: 'Sandbox',
-          icon: icons.cursor,
+          label: 'Cursor',
+          icon: icons.selectTool,
           showInNav: true,
         },
       },
       {
-        path: '/sandbox/floor-plan',
+        path: 'floor-plan',
         name: 'sandbox-floor-plan',
         component: () => import('@/pages/sandbox/FloorPlanTests/FloorPlanTestsView.vue'),
         redirect: () => ({ name: 'sandbox-floor-plan-example' }),
@@ -134,6 +134,28 @@ export const routes: readonly CustomRouteRecordRaw[] = [
             component: () => import('@/pages/sandbox/FloorPlanTests/FloorPlanTestsCoordinatesView.vue'),
             meta: {
               label: 'Coordinates',
+              showInNav: true,
+            }
+          },
+        ]
+      },
+      {
+        path: 'editor',
+        name: 'sandbox-editor',
+        component: () => import('@/pages/sandbox/EditorTests/EditorTestsView.vue'),
+        redirect: () => ({ name: 'sandbox-editor-select' }),
+        meta: {
+          label: 'Editor',
+          icon: icons.svg,
+          showInNav: true,
+        },
+        children: [
+          {
+            path: 'example',
+            name: 'sandbox-editor-select',
+            component: () => import('@/pages/sandbox/EditorTests/EditorTestsSelectView.vue'),
+            meta: {
+              label: 'Select',
               showInNav: true,
             }
           },

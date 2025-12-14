@@ -1,0 +1,218 @@
+<script setup lang="ts">
+import {
+  computed,
+  onMounted,
+  shallowRef,
+  useTemplateRef,
+} from "vue"
+import type {RoomPlanSection} from "@/types/floorPlanEntities/floorPlan.ts"
+import type {ToolName} from "FloorPlanEditor.vue.old"
+import {distanceBetween, polygonArea, snapToGrid} from "@/utils/points.ts"
+import {useDraggable} from "@vueuse/core";
+import {useDebug} from "@/composables/useDebug.ts";
+import {useEditor} from "@/composables/useEditor.ts";
+import type {Room} from "@/types/floorPlanEntities/room.ts";
+import type {Point} from "@/types/svgEditor.ts";
+
+const {
+  pixelPerMeter: ppm = 100,
+  snap = false,
+  editorMode,
+} = defineProps<{
+  editorMode: ToolName,
+  pixelPerMeter?: number
+  snap?: boolean
+}>()
+
+const room = defineModel<Room>({ required: true })
+
+const offset = computed(() => room.value.offset)
+
+// const sections = computed(() =>
+//   room.value.sections.map((section) => {
+//     const polygon = section.polygon.map(({x, y}) => ({
+//       x: (x + offset.value.x),
+//       y: (y + offset.value.y),
+//     }))
+//
+//     const area = polygonArea(section.polygon) / Math.pow(ppm, 2)
+//
+//     // if (polygon.length > 2) {
+//     //   const [root] = section.polygon
+//     //   for (let i = 2; i < section.polygon.length; i++) {
+//     //     const a = section.polygon[i-1]
+//     //     const b = section.polygon[i]
+//     //
+//     //
+//     //     if (!root || !a || !b) {
+//     //       throw new Error('Missing polygon')
+//     //     }
+//     //
+//     //
+//     //
+//     //     area += triangleArea(root, a, b) / Math.pow(ppm, 2)
+//     //
+//     //     console.log({ area, })
+//     //   }
+//     // }
+//
+//
+//     // console.assert(area === polygonArea(section.polygon) / Math.pow(ppm, 2), `area (${area}) doesn't match polygonArea (${polygonArea(section.polygon) / Math.pow(ppm, 2)})`)
+//     return {
+//       ...section,
+//       polygon,
+//       points: polygon.map(p => `${p.x},${p.y}`).join(' '),
+//       area,
+//     } as RoomPlanSection
+//   })
+// )
+
+// const editor = useEditor()
+
+// const shapes = useTemplateRef('shapeRef')
+//
+// const { debugData } = useDebug()
+//
+// const drag = shallowRef<ReturnType<typeof useDraggable>>()
+// const snapValue = computed(() => snap
+//   ? editor.scale?.value ?? 1 >= 1.5
+//     ? 100 : 10
+//   : 0
+// )
+// onMounted(() => {
+//   if (!shapes.value) return
+//   const s = shapes.value[0]
+//   drag.value = useDraggable(s, {
+//     containerElement: editor.svg,
+//     onMove(_element, { movementX, movementY }) {
+//       if (!editor.svg?.value || editorMode !== 'move') return
+//
+//       const scale = editor.scale.value
+//       const x = room.value.offset.x + movementX / scale
+//       const y = room.value.offset.y + movementY / scale
+//
+//       room.value.offset = { x, y }
+//     },
+//     onEnd() {
+//       if (!snapValue.value || !closestNode.value || !editor.svg?.value || editorMode !== 'move') return
+//       const closestPoint = closestNode.value.point
+//       const offset = room.value.offset
+//
+//       const target = snapToGrid(closestPoint, snapValue.value)
+//       debugData.value.snap = target
+//       debugData.value.closest = closestPoint
+//       debugData.value.offset = offset
+//
+//       const diffX = offset.x - target.x
+//       const diffY = offset.y - target.y
+//
+//       debugData.value.diff = {
+//         x: diffX,
+//         y: diffY,
+//       }
+//
+//       room.value.offset = {
+//         x: offset.x - diffX,
+//         y: offset.y - diffY,
+//       }
+//       // room.value.offset = {
+//       //   x: room.value.offset.x + (room.value.offset.x - target.x),
+//       //   y: room.value.offset.y + (room.value.offset.y - target.y),
+//       // }
+//     }
+//   })
+// })
+
+// shapes?.value?.forEach(shape => useDraggable(shape, {
+//   containerElement: svgContainer,
+//   onMove(e) {
+//     if (!svgContainer?.value) return
+//
+//     room.value.offset = screenDeltaToSvg(svgContainer.value, e.x, e.y)
+//   }
+// }))
+
+// const activeSection = computed(() => sections.value[0])
+// const closestNode = computed(() => {
+//   let closest: {
+//     id: string,
+//     point: Point,
+//   } | null = null
+//
+//   let mouseToClosest: number | null = null
+//   const section = activeSection.value
+//   if (!section) {
+//     return null
+//   }
+//   for (let point of section.polygon ?? []) {
+//     if (editor.mousePosition) {
+//       const mouseToPoint = distanceBetween(editor.mousePosition, point)
+//       if (!mouseToClosest || mouseToPoint < mouseToClosest) {
+//         mouseToClosest = mouseToPoint
+//         closest = {
+//           id: section.id + point.x + point.y,
+//           point,
+//         }
+//       }
+//     }
+//   }
+//
+//   return closest
+// })
+</script>
+
+<template>
+<!--  <Teleport to="debug-data" defer>-->
+<!--    <pre>{{ drag.isDragging }}</pre>-->
+<!--  </Teleport>-->
+  <g :id="room.id">
+    <RoomSectionVue
+      v-for="(section, sectionIndex) in room.sections"
+      :key="section.id"
+      v-model="room.sections[sectionIndex]!"
+      :room-offset="offset"
+      :selected="false"
+    />
+
+<!--    <template-->
+<!--      v-for="section in sections"-->
+<!--      :key="section.id"-->
+<!--    >-->
+<!--      <polygon-->
+<!--        ref="shapeRef"-->
+<!--        :points="section.points"-->
+<!--        class="fill-black/10 duration-200 ease-in-out stroke-5 stroke-black/70"-->
+<!--        :class="{-->
+<!--         'hover:fill-black/15 hover:stroke-black/100': editorMode !== 'pan',-->
+<!--        }"-->
+<!--        stroke="black"-->
+<!--        stroke-width="1"-->
+<!--        vector-effect="non-scaling-stroke"-->
+<!--      />-->
+<!--      &lt;!&ndash; Example area label &ndash;&gt;-->
+<!--&lt;!&ndash;      <text&ndash;&gt;-->
+<!--&lt;!&ndash;        v-if="section.polygon[0]"&ndash;&gt;-->
+<!--&lt;!&ndash;        :x="section.polygon[0].x + 8"&ndash;&gt;-->
+<!--&lt;!&ndash;        :y="section.polygon[0].y + 21"&ndash;&gt;-->
+<!--&lt;!&ndash;      >&ndash;&gt;-->
+<!--&lt;!&ndash;        {{ section.area }} m<tspan baseline-shift="super" font-size="10">2</tspan>&ndash;&gt;-->
+<!--&lt;!&ndash;      </text>&ndash;&gt;-->
+
+<!--      <circle-->
+<!--        v-for="point in section.polygon"-->
+<!--        :key="section.id + point.x + point.y"-->
+<!--        :cx="point.x"-->
+<!--        :cy="point.y"-->
+<!--        :r="nodeRadius"-->
+<!--        class="fill-blue-600"-->
+<!--        :class="{-->
+<!--          'stroke-red-500 stroke-2 hover:fill-red-500': (editorMode === 'select' || editorMode === 'move') && closestNode?.id === section.id + point.x + point.y,-->
+<!--        }"-->
+<!--      />-->
+<!--    </template>-->
+  </g>
+</template>
+
+<style scoped>
+
+</style>

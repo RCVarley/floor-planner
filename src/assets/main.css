@@ -4,3 +4,26 @@
 .title {
   @apply text-xl font-bold;
 }
+
+@theme {
+}
+
+@source "../features/**/*.{ts,js,vue}";
+
+@layer base {
+
+  .cursor-select,
+  .cursor-select * {
+    cursor: url('cursors/select.svg') 7 5, default;
+  }
+
+  .cursor-select--add,
+  .cursor-select--add * {
+    cursor: url('./cursors/cursor-add-selection.svg') 7 5, default;
+  }
+
+  .cursor-select--remove,
+  .cursor-select--remove * {
+    cursor: url('./cursors/cursor-remove-selection.svg') 7 5, default;
+  }
+}

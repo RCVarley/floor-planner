@@ -13,7 +13,10 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "paths": {
+      "#build/ui": ["./node_modules/.nuxt-ui/ui"],
       "@/*": ["./src/*"],
+      "@editor/*": ["./src/features/svgEditor/*"],
+      "@floor-plan/*": ["./src/features/floorPlanEditor/*"]
     }
   },
   "include": [
@@ -24,6 +27,9 @@
     "components.d.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "src/icons/iconPacksHeavy.ts",
+    "*/**/*.ts.old",
+    "*/**/*.vue.old",
   ]
 }

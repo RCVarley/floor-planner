@@ -1,0 +1,175 @@
+import {type MaybeRef, unref} from "vue"
+import type {Point} from "@editor/types/svgEditor.ts"
+
+export function addPoints(...points: Point[]): Point {
+  if (!points.length) throw new Error("No points to add")
+
+  let x = 0, y = 0
+  for (const point of points) {
+    x += point.x
+    y += point.y
+  }
+
+  return { x: Math.round(x), y: Math.round(y) }
+}
+
+export function subtractPoints(...points: Point[]): Point {
+  if (!points.length) throw new Error("No points to subtract")
+
+  let { x, y } = points[0]!
+  for (let i = 1; i < points.length; i++) {
+    console.assert(!!points[i], `point ${i} is should exist`)
+    x -= points[i]!.x
+    y -= points[i]!.y
+  }
+
+  return { x, y }
+}
+
+export function checkIfInside(point: MaybeRef<Point>, polygon: MaybeRef<Point[]>) {
+  const { x: px, y: py } = unref(point)
+  let inside = false
+
+  const n = unref(polygon).length
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const pi = unref(polygon)[i]
+    const pj = unref(polygon)[j]
+
+    if (!pi || !pj) {
+      throw new Error('Out of bounds')
+    }
+
+    const { x: xi, y: yi } = pi
+    const { x: xj, y: yj } = pj
+
+    // Check if the edge straddles the horizontal line at py
+    const intersectsY = (yi > py) !== (yj > py)
+    if (!intersectsY) continue
+
+    // Compute x-coordinate of the intersection of the edge with y = py
+    const xIntersect = xi + ((py - yi) * (xj - xi)) / (yj - yi)
+
+    // If the intersection is to the right of the point, toggle inside
+    if (xIntersect > px) {
+      inside = !inside
+    }
+  }
+
+  return inside
+}
+
+export function matchPoints(a: MaybeRef<Point>, b: MaybeRef<Point>) {
+  return unref(a).x === unref(b).x
+    && unref(a).y === unref(b).y
+}
+
+export function distanceBetween(a: MaybeRef<Point>, b: MaybeRef<Point>) {
+  const x = Math.pow(unref(b).x - unref(a).x, 2)
+  const y = Math.pow(unref(b).y - unref(a).y, 2)
+
+  return Math.sqrt(x + y)
+}
+
+export type RectanglePolygonPoints = [tl: Point, tr: Point, br: Point, bl: Point]
+export type RectangleCoordinates = [x1: number, y1: number, x2: number, y2: number]
+
+function getRectangleCoordinatesFromRect(x: number, y: number, width: number, height: number): RectangleCoordinates {
+  return [x, y, x + width, y + height]
+}
+
+function getRectangleCoordinatesFromPoints(p1: Point, p2: Point): RectangleCoordinates {
+  return [p1.x, p1.y, p2.x, p2.y]
+}
+
+export function extrapolateRectanglePolygon(p1: Point, p2: Point): RectanglePolygonPoints
+export function extrapolateRectanglePolygon(x: number, y: number, width: number, height: number): RectanglePolygonPoints
+export function extrapolateRectanglePolygon(xOrP1: number | Point, yOrP2: number | Point, widthOrUndefined?: number, heightOrUndefined?: number): RectanglePolygonPoints {
+  const [x1, y1, x2, y2] = typeof xOrP1 === 'number' && typeof yOrP2 === 'number' && typeof widthOrUndefined === 'number' && typeof heightOrUndefined === 'number'
+    ? getRectangleCoordinatesFromRect(xOrP1, yOrP2, widthOrUndefined, heightOrUndefined)
+    : getRectangleCoordinatesFromPoints(xOrP1 as Point, yOrP2 as Point)
+
+  return [
+    { x: Math.min(x1, x2), y: Math.min(y1, y2) },
+    { x: Math.max(x1, x2), y: Math.min(y1, y2) },
+    { x: Math.max(x1, x2), y: Math.max(y1, y2) },
+    { x: Math.min(x1, x2), y: Math.max(y1, y2) },
+  ]
+}
+
+export function getPointerPosition(e: PointerEvent, x: MaybeRef<number>, y: MaybeRef<number>, scale: MaybeRef<number>): Point
+export function getPointerPosition(e: PointerEvent, panOffset: MaybeRef<Point>, scale: MaybeRef<number>): Point
+export function getPointerPosition(e: PointerEvent, xOrPanOffset: MaybeRef<Point | number>, yOrScale: MaybeRef<number>, scaleOrUndefined?: MaybeRef<number>): Point {
+  let x: number
+  let y: number
+  let scale: number
+
+  const panOffset = unref(xOrPanOffset)
+  if (typeof panOffset === 'object') {
+    x = panOffset.x
+    y = panOffset.y
+    scale = unref(yOrScale)
+  }
+  else {
+    x = unref(xOrPanOffset) as number
+    y = unref(yOrScale)
+    scale = unref(scaleOrUndefined) as number
+  }
+
+  return {
+    x: Math.round((e.offsetX + x) / scale),
+    y: Math.round((e.offsetY + y) / scale),
+  }
+}
+
+export function snapToGrid(point: Point, snap: number) {
+  const x = Math.round(point.x)
+  const mx = x % snap
+
+  const y = Math.round(point.y)
+  const my = y % snap
+
+  const nx = (mx
+    ? mx >= snap / 2
+      ? x - mx
+      : x + snap - mx
+    : x
+  )
+
+  const ny = (my
+    ? my >= snap / 2
+      ? y - my
+      : y + snap - my
+    : y
+  )
+
+  return {
+    x: nx,
+    y: ny,
+  }
+}
+
+const point = { x: 49, y: 26 }
+snapToGrid(point, 25)
+
+
+export function triangleArea(root: Point, a: Point, b: Point) {
+  const ax = a.x - root.x
+  const ay = a.y - root.y
+  const bx = b.x - root.x
+  const by = b.y - root.y
+
+  return Math.abs(ax * by - ay * bx) / 2
+}
+
+export function polygonArea(poly: Point[]): number {
+  if (poly.length < 3) return 0
+
+  let s = 0
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const pi = poly[i]!
+    const pj = poly[j]!
+    s += (pj.x * pi.y - pi.x * pj.y)
+  }
+
+  return Math.abs(s) / 2
+}
