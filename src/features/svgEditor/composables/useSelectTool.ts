@@ -252,6 +252,9 @@ export const useSelectTool = (
     width.value = Math.abs(pointerPosition.x - point1.value.x)
     height.value = Math.abs(pointerPosition.y - point1.value.y)
 
+    if (selectionMethod.value === 'default') {
+      selectedIds.clear()
+    }
     getSelectCandidates(polygons)
   }
 
