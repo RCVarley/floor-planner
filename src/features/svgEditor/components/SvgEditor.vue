@@ -78,7 +78,7 @@ function onPointerUp(e: PointerEvent) {
 
   switch(activeToolName.value) {
     case selectTool.name:
-      selectTool.onPointerUp(e, polygons.value)
+      selectTool.onPointerUp(e)
       break
   }
 }
