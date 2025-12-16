@@ -2,10 +2,10 @@
 import {computed, ref} from "vue"
 import type {EditorToolName, Point, SvgEditorProps} from "@editor/types/svgEditor.ts"
 import AppConfig from "@/app.config.ts"
-import {getPointerPosition} from "@editor/utilities/points.ts"
 import {useSelectTool} from "@editor/composables/useSelectTool.ts"
 import type {ToolbarButtonGroup} from "@editor/types/toolbarButton.ts"
 import {brandedId} from "@/features/general/utilities/ids.ts"
+import {usePanTool} from '@editor/composables/usePanTool.ts'
 import {useKeyModifier} from '@vueuse/core'
 
 defineProps<Partial<SvgEditorProps>>()
@@ -33,18 +33,10 @@ const { selectedIds, candidateSelectedIds, ...selectTool } = useSelectTool({
   scale,
 })
 
-useExtendedShortcuts({
-  'escape': () => {
-    switch(activeToolName.value) {
-      case selectTool.name:
-        selectTool.onEscape()
-        break
-    }
-  },
-  'shift': {
-    keydown: () => isShiftDown.value = true,
-    keyup: () => isShiftDown.value = false,
-  }
+const panTool = usePanTool({
+  activeToolName,
+  panX,
+  panY,
 })
 
 // const nodeRadius = computed(() => 8 / (scale.value))
@@ -52,20 +44,6 @@ const pointerPosition = ref<Point | null>(null)
 const pointerDown = ref(false)
 const forcePointerDown = ref(false)
 const isPointerDown = computed(() => pointerDown.value || forcePointerDown.value)
-function onPointerMove(e: PointerEvent) {
-  pointerPosition.value = getPointerPosition(e, panX, panY, scale)
-
-  if (activeToolName.value === 'pan' && isPointerDown.value) {
-    panX.value += e.movementX * -1
-    panY.value += e.movementY * -1
-  }
-
-  switch(activeToolName.value) {
-    case selectTool.name:
-      selectTool.onPointerMove(e, polygons.value)
-      break
-  }
-}
 
 function onPointerDown(e: PointerEvent) {
   pointerDown.value = true
@@ -73,6 +51,22 @@ function onPointerDown(e: PointerEvent) {
   switch(activeToolName.value) {
     case selectTool.name:
       selectTool.onPointerDown(e)
+      break
+
+    case panTool.name:
+      panTool.onPointerDown()
+      break
+  }
+}
+
+function onPointerMove(e: PointerEvent) {
+  switch(activeToolName.value) {
+    case selectTool.name:
+      selectTool.onPointerMove(e, polygons.value)
+      break
+
+    case panTool.name:
+      panTool.onPointerMove(e)
       break
   }
 }
@@ -83,6 +77,10 @@ function onPointerUp(e: PointerEvent) {
   switch(activeToolName.value) {
     case selectTool.name:
       selectTool.onPointerUp(e)
+      break
+
+    case panTool.name:
+      panTool.onPointerUp()
       break
   }
 }
@@ -109,10 +107,12 @@ const toolbarGroups = computed<ToolbarButtonGroup[]>(() => ([
     id: brandedId('general'),
     name: 'General',
     buttons: [
-      selectTool.toolbarButton
+      selectTool.toolbarButton,
+      panTool.toolbarButton,
     ],
   }
 ]))
+
 useShortcuts({
   ...extractShortcutsFromToolbarGroups(...toolbarGroups.value),
   'escape': () => {
@@ -122,6 +122,7 @@ useShortcuts({
         break
     }
   },
+  ...panTool.shortcuts,
 })
 
 type Polygon = { id: string, points: Point[] }
@@ -176,6 +177,7 @@ const activeToolCanHover = computed(() => selectTool.canHover.value)
     :class="[
       showPropertiesPanel ? 'col-span-1' : 'col-span-2',
       selectTool.classes.value,
+      panTool.classes.value,
     ]"
     @pointerdown="onPointerDown"
     @pointerup="onPointerUp"
