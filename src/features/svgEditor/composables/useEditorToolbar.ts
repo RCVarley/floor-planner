@@ -23,7 +23,7 @@ export const useEditorToolbar = (
           id: brandedId('pan'),
           toolName: 'pan',
           label: 'Pan',
-          icon: icons.hand,
+          icon: icons.panTool,
           kbds: ['p'],
           onClick: () => activeTool.value = 'pan',
         },

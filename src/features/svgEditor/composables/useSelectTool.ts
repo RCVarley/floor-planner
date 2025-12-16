@@ -31,6 +31,7 @@ export interface ToolComposable {
   onSelect: (e: PointerEvent, id: string) => void
   toolbarButton: ToolbarButtonProps
   classes: ComputedRef<CssClasses>
+  canHover: ComputedRef<boolean>
 }
 
 export const useSelectTool = (
@@ -42,7 +43,6 @@ export const useSelectTool = (
     panY,
     scale,
   }: {
-
     activeToolName: Ref<EditorToolName | null>
     currentTargetId: Ref<string | null>
     isShiftDown: Ref<boolean>
@@ -204,6 +204,8 @@ export const useSelectTool = (
     selectedIds.clear()
   }
 
+  const canHover = computed(() => activeToolName.value === toolName)
+
   return {
     classes,
     name: toolName,
@@ -217,5 +219,6 @@ export const useSelectTool = (
     selectedIds,
     candidateSelectedIds,
     toolbarButton,
+    canHover,
   }
 }
