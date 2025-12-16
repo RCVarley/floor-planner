@@ -145,6 +145,8 @@ const polygons = ref<Polygon[]>([
     ]
   },
 ])
+
+const activeToolCanHover = computed(() => selectTool.canHover.value)
 </script>
 
 <template>
@@ -208,7 +210,7 @@ const polygons = ref<Polygon[]>([
         class="stroke-5 stroke-black/60 fill-transparent"
         :class="{
           '!stroke-red-500': selectedIds.has(polygon.id) || candidateSelectedIds.has(polygon.id),
-          '!stroke-black': currentTargetId === polygon.id,
+          '!stroke-black': activeToolCanHover && currentTargetId === polygon.id,
         }"
         @pointerover="onPointerOver($event, polygon.id)"
         @pointerout="onPointerOut($event, polygon.id)"
