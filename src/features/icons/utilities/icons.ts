@@ -81,7 +81,7 @@ export const iconDefinitions = {
   floorPlan: 'streamline-pixel:building-real-eastate-project-blueprint',
   svg: 'lucide:code-xml',
   client: 'lucide:square-user-round',
-  hand: 'lucide:hand',
+  panTool: 'lucide:hand',
   move: 'lucide:move',
   text: 'lucide:text-cursor',
   delete: 'lucide:trash',
