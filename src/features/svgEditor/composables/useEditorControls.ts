@@ -1,5 +1,4 @@
 import {computed, type ComputedRef, type ModelRef, ref, type Ref} from "vue"
-import {extractShortcuts, useExtendedShortcuts} from "@editor/composables/useShortcuts.ts"
 import type {EditorToolName, Point} from "@editor/types/svgEditor.ts"
 import {round} from "@/features/general/utilities/maths.ts"
 import type {ToolbarButtonGroup} from "@editor/types/toolbarButton.ts"
@@ -11,7 +10,7 @@ export const useEditorControls = <EntityType extends { id: string, __brand: stri
     scale,
     mousePosition,
     onClick,
-    toolbarGroups,
+    // toolbarGroups,
   }: {
     mode: Ref<EditorToolName>
     pan: ModelRef<Point>
@@ -25,8 +24,8 @@ export const useEditorControls = <EntityType extends { id: string, __brand: stri
   const isMouseDown = computed(() => forcePan.value || mouseDown.value)
 
   let modeStorage: EditorToolName | null = null
-  useExtendedShortcuts({
-    ...extractShortcuts(toolbarGroups),
+  useShortcuts({
+    // ...extractShortcuts(toolbarGroups),
     ' ': {
       keydown: () => {
         if (mode.value !== 'pan') {
