@@ -6,6 +6,7 @@ import {getPointerPosition} from "@editor/utilities/points.ts"
 import {useSelectTool} from "@editor/composables/useSelectTool.ts"
 import type {ToolbarButtonGroup} from "@editor/types/toolbarButton.ts"
 import {brandedId} from "@/features/general/utilities/ids.ts"
+import {useKeyModifier} from '@vueuse/core'
 
 defineProps<Partial<SvgEditorProps>>()
 
@@ -18,7 +19,10 @@ const icons = AppConfig.ui.icons
 
 const activeToolName = ref<EditorToolName>('select')
 const currentTargetId = ref<string|null>(null)
-const isShiftDown = ref(false)
+const isShiftDown = useKeyModifier('Shift', { initial: false })
+const isMetaDown = useKeyModifier('Meta', { initial: false })
+const isCtrlDown = useKeyModifier('Control', { initial: false })
+const isAltDown = useKeyModifier('Alt', { initial: false })
 
 const { selectedIds, candidateSelectedIds, ...selectTool } = useSelectTool({
   activeToolName,
@@ -109,6 +113,16 @@ const toolbarGroups = computed<ToolbarButtonGroup[]>(() => ([
     ],
   }
 ]))
+useShortcuts({
+  ...extractShortcutsFromToolbarGroups(...toolbarGroups.value),
+  'escape': () => {
+    switch(activeToolName.value) {
+      case selectTool.name:
+        selectTool.onEscape()
+        break
+    }
+  },
+})
 
 type Polygon = { id: string, points: Point[] }
 const polygons = ref<Polygon[]>([
