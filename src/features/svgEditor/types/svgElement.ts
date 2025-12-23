@@ -1,10 +1,13 @@
-import type {MaybeRef} from "vue";
+import type {CanMove} from '@editor/types/moveTool.ts'
+import type {Point} from '@editor/types/svgEditor.ts'
 
-export interface SvgElementValues {
+export interface SvgElementValues extends CanMove {
   id: string
-  points: MaybeRef<number[]>
-  minX: MaybeRef<number | null>
-  maxX: MaybeRef<number | null>
-  minY: MaybeRef<number | null>
-  maxY: MaybeRef<number | null>
+  points: Point[]
+  // minX: MaybeRef<number | null>
+  // maxX: MaybeRef<number | null>
+  // minY: MaybeRef<number | null>
+  // maxY: MaybeRef<number | null>
 }
+
+export type SvgElementMap = Map<SvgElementValues['id'], SvgElementValues>

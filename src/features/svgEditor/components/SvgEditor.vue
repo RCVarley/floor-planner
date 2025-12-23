@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, ref} from "vue"
+import {computed, reactive, ref} from "vue"
 import type {EditorToolName, Point, SvgEditorProps} from "@editor/types/svgEditor.ts"
 import AppConfig from "@/app.config.ts"
 import {useSelectTool} from "@editor/composables/useSelectTool.ts"
@@ -7,6 +7,7 @@ import type {ToolbarButtonGroup} from "@editor/types/toolbarButton.ts"
 import {brandedId} from "@/features/general/utilities/ids.ts"
 import {usePanTool} from '@editor/composables/usePanTool.ts'
 import {useKeyModifier} from '@vueuse/core'
+import type {SvgElementValues} from '@editor/types/svgElement.ts'
 
 defineProps<Partial<SvgEditorProps>>()
 

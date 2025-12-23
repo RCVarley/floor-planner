@@ -116,6 +116,7 @@ export type Action =
   | 'delete'
   | 'list'
   | 'select'
+  | 'move'
 
 /**
  * # ApiErrorType
