@@ -15,6 +15,29 @@ const panY = defineModel<number>('panY', { default: 0 })
 const scale = defineModel<number>('zoom', { default: 1 })
 const snap = defineModel<boolean>('snap', { default: false })
 
+const polygons = reactive(new Map<SvgElementValues['id'],SvgElementValues>([
+  ['square', {
+    id: 'square',
+    points: [
+      { x: 80, y: 80 },
+      { x: 120, y: 80 },
+      { x: 120, y: 120 },
+      { x: 80, y: 120 },
+    ],
+    move: null,
+  }],
+  ['rect', {
+    id: 'rect',
+    points: [
+      { x: 100, y: 100 },
+      { x: 220, y: 100 },
+      { x: 220, y: 220 },
+      { x: 100, y: 220 },
+    ],
+    move: null,
+  }],
+]))
+
 const icons = AppConfig.ui.icons
 
 const activeToolName = ref<EditorToolName>('select')
@@ -62,7 +85,7 @@ function onPointerDown(e: PointerEvent) {
 function onPointerMove(e: PointerEvent) {
   switch(activeToolName.value) {
     case selectTool.name:
-      selectTool.onPointerMove(e, polygons.value)
+      selectTool.onPointerMove(e)
       break
 
     case panTool.name:
@@ -125,28 +148,6 @@ useShortcuts({
   ...panTool.shortcuts,
 })
 
-type Polygon = { id: string, points: Point[] }
-const polygons = ref<Polygon[]>([
-  {
-    id: 'square',
-    points: [
-      { x: 80, y: 80 },
-      { x: 120, y: 80 },
-      { x: 120, y: 120 },
-      { x: 80, y: 120 },
-    ]
-  },
-  {
-    id: 'rect',
-    points: [
-      { x: 100, y: 100 },
-      { x: 220, y: 100 },
-      { x: 220, y: 220 },
-      { x: 100, y: 220 },
-    ]
-  },
-])
-
 const activeToolCanHover = computed(() => selectTool.canHover.value)
 </script>
 
@@ -205,8 +206,8 @@ const activeToolCanHover = computed(() => selectTool.canHover.value)
     </template>
     <template #default>
       <SvgPolygon
-        v-for="polygon in polygons"
-        :key="polygon.id"
+        v-for="[key, polygon] in polygons"
+        :key="key"
         :id="polygon.id"
         :points="polygon.points"
         class="stroke-5 stroke-black/60 fill-transparent"

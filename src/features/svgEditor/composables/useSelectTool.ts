@@ -15,6 +15,7 @@ import AppConfig from "@/app.config.ts"
 import type {ToolbarButtonProps} from "@editor/types/toolbarButton.ts"
 import {type RectanglePreview, useEditorPreview} from "@editor/composables/useEditorPreview.ts";
 import type {CssClasses} from "@/features/general/types/vueHelperTypes.ts";
+import type {SvgElementMap, SvgElementValues} from '@editor/types/svgElement.ts'
 
 const icons = AppConfig.ui.icons
 
@@ -22,7 +23,7 @@ export interface ToolComposable {
   name: EditorToolName
   onEscape: () => void
   onPointerDown: (e: PointerEvent) => void
-  onPointerMove: (e: PointerEvent, polygons: { id: string, points: Point[] }[]) => void
+  onPointerMove: (e: PointerEvent) => void
   onPointerUp: (e: PointerEvent) => void
   preview: ComputedRef<RectanglePreview>
   reset: () => void
@@ -38,6 +39,7 @@ export const useSelectTool = (
   {
     activeToolName,
     currentTargetId,
+    elements,
     isShiftDown,
     panX,
     panY,
@@ -45,6 +47,7 @@ export const useSelectTool = (
   }: {
     activeToolName: Ref<EditorToolName | null>
     currentTargetId: Ref<string | null>
+    elements: Map<SvgElementValues['id'], SvgElementValues>
     isShiftDown: Ref<boolean>
     panX: Ref<number> | ModelRef<number>
     panY: Ref<number> | ModelRef<number>
@@ -79,20 +82,20 @@ export const useSelectTool = (
       && Math.abs(pointerPosition.y - editorPreview.anchorPoint.value.y) < clickThreshold.value
   }
 
-  const getSelectCandidates = (polygons: { id: string, points: Point[] }[]) => {
+  const getSelectCandidates = (elements: SvgElementMap) => {
     if (editorPreview.phase.value === 'idle') {
       return
     }
 
-    if (!polygons.length || !editorPreview.preview.value.visible) {
+    if (!elements.size || !editorPreview.preview.value.visible) {
       candidateSelectedIds.clear()
       return
     }
 
     candidateSelectedIds.clear()
-    for (const polygon of polygons) {
-      if (polygon.points.some(point => editorPreview.checkIfPointIsInside(point)))
-        candidateSelectedIds.add(polygon.id)
+    for (const element of elements.values()) {
+      if (element.points.some(point => editorPreview.checkIfPointIsInside(point)))
+        candidateSelectedIds.add(element.id)
     }
   }
 
@@ -165,9 +168,8 @@ export const useSelectTool = (
   /**
    * # onPointerMove
    * @param e pointer event
-   * @param polygons list of polygons to select from
    */
-  const onPointerMove = (e: PointerEvent, polygons: { id: string, points: Point[] }[]) => {
+  const onPointerMove = (e: PointerEvent) => {
     if (activeToolName.value !== toolName || editorPreview.phase.value === 'idle') {
       return
     }
@@ -181,7 +183,7 @@ export const useSelectTool = (
     if (selectionMethod.value === 'default') {
       selectedIds.clear()
     }
-    getSelectCandidates(polygons)
+    getSelectCandidates(elements)
   }
 
   const toolbarButton: ToolbarButtonProps = {
