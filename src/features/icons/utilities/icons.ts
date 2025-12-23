@@ -82,7 +82,7 @@ export const iconDefinitions = {
   svg: 'lucide:code-xml',
   client: 'lucide:square-user-round',
   panTool: 'lucide:hand',
-  move: 'lucide:move',
+  moveTool: 'lucide:move',
   text: 'lucide:text-cursor',
   delete: 'lucide:trash',
   edit: 'lucide:pencil',

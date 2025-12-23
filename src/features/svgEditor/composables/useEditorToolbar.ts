@@ -31,7 +31,7 @@ export const useEditorToolbar = (
           id: brandedId('move'),
           toolName: 'move',
           label: 'Move',
-          icon: icons.move,
+          icon: icons.moveTool,
           kbds: ['m'],
           onClick: () => activeTool.value = 'move',
         },
