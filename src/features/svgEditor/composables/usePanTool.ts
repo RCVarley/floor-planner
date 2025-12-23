@@ -1,16 +1,10 @@
-import {computed, type ModelRef, type Ref, ref} from "vue"
+import {computed, ref} from "vue"
 import type {ToolbarButtonProps} from "@editor/types/toolbarButton.ts"
 import {brandedId} from "@/features/general/utilities/ids.ts"
 import AppConfig from "@/app.config.ts"
-import type {EditorToolName} from '@editor/types/svgEditor.ts'
+import type {UsePanToolProps} from '@editor/types/panTool.ts'
 
 const icons = AppConfig.ui.icons
-
-interface UsePanToolProps {
-  activeToolName: Ref<EditorToolName | null>
-  panX: Ref<number> | ModelRef<number>
-  panY: Ref<number> | ModelRef<number>
-}
 
 export const usePanTool = (
   {
@@ -34,7 +28,7 @@ export const usePanTool = (
 
   }
 
-  let swappedTool: EditorToolName | null = null
+  let swappedTool: string | null = null
   const shortcuts = {
     ' ': {
       keydown: () => {
