@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import type {Point} from "@editor/types/svgEditor.ts"
-import {ref} from "vue"
-import {watchDebounced} from '@vueuse/core'
+import {computed, ref, watch, watchEffect} from "vue"
+import {useSvgElement} from '@editor/composables/useSvgElement.ts'
 
 const {
+  id,
   points,
+  moveX: _moveX,
+  moveY: _moveY,
 } = defineProps<{
   id: string,
   points: Point[]
+  moveX?: number
+  moveY?: number
 }>()
 
 const pointString = ref('')
@@ -17,7 +22,7 @@ const maxX = ref<number | null>(null)
 const minY = ref<number | null>(null)
 const maxY = ref<number | null>(null)
 
-watchDebounced(
+watch(
   () => points, (_points) => {
     pointString.value = ''
     maxX.value = null
@@ -45,17 +50,28 @@ watchDebounced(
   {
     immediate: true,
     deep: true,
-    debounce: 100,
-    maxWait: 300,
+
   }
 )
 
+const moveX = computed(() => _moveX)
+const moveY = computed(() => _moveY)
+
+const { move } = useSvgElement({ moveX, moveY })
+const { debugData } = useDebug()
+watchEffect(() => {
+  if (!debugData.value.polygon) {
+    debugData.value.polygon = {} as Record<string, any>
+  }
+  debugData.value.polygon[id] = (moveX.value || moveY.value) ? move.value : null
+})
 </script>
 
 <template>
   <polygon
     :id
     :points="pointString"
+    :style="move"
   />
 </template>
 

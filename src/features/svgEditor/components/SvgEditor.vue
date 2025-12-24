@@ -44,14 +44,15 @@ const icons = AppConfig.ui.icons
 const activeToolName = ref<EditorToolName>('select')
 const currentTargetId = ref<string|null>(null)
 const isShiftDown = useKeyModifier('Shift', { initial: false })
-const isMetaDown = useKeyModifier('Meta', { initial: false })
-const isCtrlDown = useKeyModifier('Control', { initial: false })
-const isAltDown = useKeyModifier('Alt', { initial: false })
+// const isMetaDown = useKeyModifier('Meta', { initial: false })
+// const isCtrlDown = useKeyModifier('Control', { initial: false })
+// const isAltDown = useKeyModifier('Alt', { initial: false })
 
 const { selectedIds, candidateSelectedIds, ...selectTool } = useSelectTool({
   activeToolName,
   currentTargetId,
   isShiftDown,
+  elements: polygons,
   panX,
   panY,
   scale,
@@ -61,6 +62,16 @@ const panTool = usePanTool({
   activeToolName,
   panX,
   panY,
+})
+
+const moveTool = useMoveTool({
+  activeToolName,
+  currentTargetId,
+  selectedIds,
+  panX,
+  panY,
+  scale,
+  elements: polygons
 })
 
 // const nodeRadius = computed(() => 8 / (scale.value))
@@ -80,6 +91,10 @@ function onPointerDown(e: PointerEvent) {
     case panTool.name:
       panTool.onPointerDown()
       break
+
+    case moveTool.name:
+      moveTool.onPointerDown(e)
+      break
   }
 }
 
@@ -91,6 +106,10 @@ function onPointerMove(e: PointerEvent) {
 
     case panTool.name:
       panTool.onPointerMove(e)
+      break
+
+    case moveTool.name:
+      moveTool.onPointerMove(e)
       break
   }
 }
@@ -105,6 +124,10 @@ function onPointerUp(e: PointerEvent) {
 
     case panTool.name:
       panTool.onPointerUp()
+      break
+
+    case moveTool.name:
+      moveTool.onPointerUp()
       break
   }
 }
@@ -133,6 +156,7 @@ const toolbarGroups = computed<ToolbarButtonGroup[]>(() => ([
     buttons: [
       selectTool.toolbarButton,
       panTool.toolbarButton,
+      moveTool.toolbarButton,
     ],
   }
 ]))
@@ -180,6 +204,7 @@ const activeToolCanHover = computed(() => selectTool.canHover.value)
       showPropertiesPanel ? 'col-span-1' : 'col-span-2',
       selectTool.classes.value,
       panTool.classes.value,
+      moveTool.classes.value,
     ]"
     @pointerdown="onPointerDown"
     @pointerup="onPointerUp"
@@ -211,13 +236,15 @@ const activeToolCanHover = computed(() => selectTool.canHover.value)
         :key="key"
         :id="polygon.id"
         :points="polygon.points"
+        :move-x="polygon.move?.x"
+        :move-y="polygon.move?.y"
         class="stroke-5 stroke-black/60 fill-transparent"
         :class="{
-          '!stroke-red-500': selectedIds.has(polygon.id) || candidateSelectedIds.has(polygon.id),
-          '!stroke-black': activeToolCanHover && currentTargetId === polygon.id,
+          '!stroke-red-500': selectedIds.has(key) || candidateSelectedIds.has(key),
+          '!stroke-black': activeToolCanHover && currentTargetId === key,
         }"
-        @pointerover="onPointerOver($event, polygon.id)"
-        @pointerout="onPointerOut($event, polygon.id)"
+        @pointerover="onPointerOver($event, key)"
+        @pointerout="onPointerOut($event, key)"
       />
     </template>
   </SvgEditorCore>

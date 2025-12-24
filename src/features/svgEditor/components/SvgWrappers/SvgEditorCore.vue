@@ -33,7 +33,6 @@ const { gridSize, gridExtent, scaleThreshold } = useEditorGrid({ snap, scale })
     :class="[
         {
           '**:select-none': activeToolName !== 'text',
-          '**:cursor-move': activeToolName === 'move',
           '**:cursor-text': activeToolName === 'text',
         }
       ]"
