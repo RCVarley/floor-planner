@@ -166,6 +166,7 @@ useShortcuts({
   'escape': () => {
     switch(activeToolName.value) {
       case selectTool.name:
+      case moveTool.name:
         selectTool.onEscape()
         break
     }
@@ -240,8 +241,8 @@ const activeToolCanHover = computed(() => selectTool.canHover.value)
         :move-y="polygon.move?.y"
         class="stroke-5 stroke-black/60 fill-transparent"
         :class="{
-          '!stroke-red-500': selectedIds.has(key) || candidateSelectedIds.has(key),
-          '!stroke-black': activeToolCanHover && currentTargetId === key,
+          'stroke-red-500!': selectedIds.has(key) || candidateSelectedIds.has(key),
+          'stroke-black!': activeToolCanHover && currentTargetId === key,
         }"
         @pointerover="onPointerOver($event, key)"
         @pointerout="onPointerOut($event, key)"
