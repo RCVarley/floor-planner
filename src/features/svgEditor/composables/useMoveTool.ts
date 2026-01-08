@@ -91,8 +91,8 @@ export const useMoveTool = (
       hasSetId = true
     }
 
-    anchorX.value = round(e.offsetX + panX.value) // round(e.offsetX + panX.value, 2)
-    anchorY.value = round(e.offsetY + panY.value) // round(e.offsetY + panY.value, 2)
+    anchorX.value = round((e.offsetX + panX.value) * scale.value)
+    anchorY.value = round((e.offsetY + panY.value) * scale.value)
 
     phase.value = 'active'
   }
