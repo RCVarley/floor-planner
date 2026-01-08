@@ -49,9 +49,9 @@ export const useSelectTool = (
     currentTargetId: Ref<string | null>
     elements: Map<SvgElementValues['id'], SvgElementValues>
     isShiftDown: Ref<boolean>
-    panX: Ref<number> | ModelRef<number>
-    panY: Ref<number> | ModelRef<number>
-    scale: Ref<number> | ModelRef<number>
+    panX: Ref<number>| ModelRef<number> | ModelRef<number, string, number, number>
+    panY: Ref<number> | ModelRef<number> | ModelRef<number, string, number, number>
+    scale: Ref<number> | ModelRef<number> | ModelRef<number, string, number, number>
   }): ToolComposable => {
   const toolName = 'select'
   const clickThreshold = computed(() => 5 / scale.value)
