@@ -94,6 +94,7 @@ export type ApiErrorCode = `${ApiFeature}:${ApiAction}:${ApiErrorType}`
 export type Feature =
   | 'preview'
   | 'tool'
+  | 'rectangle'
   | 'entity'
   | 'shape'
   | 'floor-plan'

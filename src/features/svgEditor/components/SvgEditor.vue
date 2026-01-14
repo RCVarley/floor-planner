@@ -4,10 +4,11 @@ import type {EditorToolName, Point, SvgEditorProps} from "@editor/types/svgEdito
 import AppConfig from "@/app.config.ts"
 import {useSelectTool} from "@editor/composables/useSelectTool.ts"
 import type {ToolbarButtonGroup} from "@editor/types/toolbarButton.ts"
-import {brandedId} from "@/features/general/utilities/ids.ts"
+import {brandedId, uid} from "@/features/general/utilities/ids.ts"
 import {usePanTool} from '@editor/composables/usePanTool.ts'
 import {useKeyModifier} from '@vueuse/core'
 import type {SvgElementValues} from '@editor/types/svgElement.ts'
+import {useRectangleTool} from '@editor/composables/useRectangleTool.ts'
 
 defineProps<Partial<SvgEditorProps>>()
 
@@ -16,9 +17,11 @@ const panY = defineModel<number>('panY', { default: 0 })
 const scale = defineModel<number>('zoom', { default: 1 })
 const snap = defineModel<boolean>('snap', { default: false })
 
+const r1 = uid('rect')
+const r2 = uid('rect')
 const polygons = reactive(new Map<SvgElementValues['id'],SvgElementValues>([
-  ['square', {
-    id: 'square',
+  [r1, {
+    id: r1,
     points: [
       { x: 80, y: 80 },
       { x: 120, y: 80 },
@@ -27,8 +30,8 @@ const polygons = reactive(new Map<SvgElementValues['id'],SvgElementValues>([
     ],
     move: null,
   }],
-  ['rect', {
-    id: 'rect',
+  [r2, {
+    id: r2,
     points: [
       { x: 100, y: 100 },
       { x: 220, y: 100 },
@@ -74,6 +77,14 @@ const moveTool = useMoveTool({
   elements: polygons
 })
 
+const rectangleTool = useRectangleTool({
+  activeToolName,
+  panX,
+  panY,
+  scale,
+  elements: polygons,
+})
+
 // const nodeRadius = computed(() => 8 / (scale.value))
 const pointerPosition = ref<Point | null>(null)
 const pointerDown = ref(false)
@@ -95,6 +106,10 @@ function onPointerDown(e: PointerEvent) {
     case moveTool.name:
       moveTool.onPointerDown(e)
       break
+
+    case rectangleTool.name:
+      rectangleTool.onPointerDown(e)
+      break
   }
 }
 
@@ -110,6 +125,10 @@ function onPointerMove(e: PointerEvent) {
 
     case moveTool.name:
       moveTool.onPointerMove(e)
+      break
+
+    case rectangleTool.name:
+      rectangleTool.onPointerMove(e)
       break
   }
 }
@@ -128,6 +147,10 @@ function onPointerUp(e: PointerEvent) {
 
     case moveTool.name:
       moveTool.onPointerUp()
+      break
+
+    case rectangleTool.name:
+      rectangleTool.onPointerUp(e)
       break
   }
 }
@@ -158,6 +181,13 @@ const toolbarGroups = computed<ToolbarButtonGroup[]>(() => ([
       panTool.toolbarButton,
       moveTool.toolbarButton,
     ],
+  },
+  {
+    id: brandedId('drawing'),
+    name: 'Drawing',
+    buttons: [
+      rectangleTool.toolbarButton,
+    ]
   }
 ]))
 
@@ -206,6 +236,7 @@ const activeToolCanHover = computed(() => selectTool.canHover.value)
       selectTool.classes.value,
       panTool.classes.value,
       moveTool.classes.value,
+      rectangleTool.classes.value,
     ]"
     @pointerdown="onPointerDown"
     @pointerup="onPointerUp"
@@ -219,7 +250,17 @@ const activeToolCanHover = computed(() => selectTool.canHover.value)
         :y="selectTool.preview.value.y"
         :width="selectTool.preview.value.width"
         :height="selectTool.preview.value.height"
-        class="fill-black/10 stroke-black-2"
+        class="fill-black/10 stroke-black"
+        stroke-dasharray="5,5"
+      />
+
+      <rect
+        v-if="rectangleTool.preview.value.visible"
+        :x="rectangleTool.preview.value.x"
+        :y="rectangleTool.preview.value.y"
+        :width="rectangleTool.preview.value.width"
+        :height="rectangleTool.preview.value.height"
+        class="stroke-5 fill-transparent stroke-black"
       />
 
 <!--      <line-->
@@ -253,8 +294,8 @@ const activeToolCanHover = computed(() => selectTool.canHover.value)
     v-if="isShowingPropertiesPanel"
     class="col-start-3 row-start-1 row-span-2 mt-0.5"
     :ui="{
-        header: 'flex gap-4 items-center',
-      }"
+      header: 'flex gap-4 items-center',
+    }"
   >
     <template #header>
       <UButton
