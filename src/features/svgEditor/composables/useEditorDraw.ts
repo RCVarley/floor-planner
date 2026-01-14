@@ -1,22 +1,10 @@
-// import {computed, type ComputedRef, ref, type Ref} from "vue";
-// import type {EditorDrawMode, ToolName, EditorSelectedEntity, Point} from "@editor/types/svgEditor.ts";
-// import {matchPoints} from "@/utils/points.ts";
-// import {NamedError, type Result} from "@/utils/errorHandling.ts";
-// import {brandedId} from "@/utils/ids.ts";
-// import type {ToolbarButtonGroup} from "@editor/types/toolbarButton.ts";
-// import AppConfig from "@/app.config.ts";
-// import type {EditorEntityStates} from "@/components/floorPlanEditor/FloorPlanEditor.vue";
-// import type {BaseFloorPlanEntity, EntityTypeName} from "@editor/types/floorPlan.ts";
-// import {createBuilding, createFloor, createRectangularSection, createRoom} from "@/utils/floorPlan.ts";
-// import type {Building} from "@editor/types/building.ts";
-// import type {Floor} from "@editor/types/floor.ts";
-// import type {RectangularSection} from "@editor/types/section.ts";
-// import {useDebug} from "@/composables/useDebug.ts";
+// import AppConfig from '@/app.config.ts'
+// import {computed, type Ref} from 'vue'
 //
 // const icons = AppConfig.ui.icons;
 //
 // const limits = {
-//   triangle: 3,
+//   // triangle: 3,
 //   rectangle: 2,
 //   // pentagon: 5,
 //   // hexagon: 6,
@@ -32,7 +20,6 @@
 //   {
 //     mousePosition,
 //   }: {
-//     mode: Ref<ToolName>
 //     mousePosition: Ref<Point | null>
 //     entityStates: EditorEntityStates
 //     selectedEntity: ComputedRef<EditorSelectedEntity | null>
@@ -43,23 +30,23 @@
 //   const drawMode = ref<EditorDrawMode | null>(null)
 //   const drawingPoints = ref<Point[]>([])
 //
-//   const cursorLine = computed(() => {
-//     if (
-//       !drawingPoints.value.length
-//       || !mousePosition.value
-//       || (
-//         (drawMode.value !== 'polygon' && !drawingPoints.value.length)
-//         && (drawMode.value !== 'triangle' && drawingPoints.value.length > 1)
-//       )
-//     ) {
-//       return null
-//     }
-//
-//     const { x: x1, y: y1 } = drawingPoints.value.at(-1)!
-//     const { x: x2, y: y2 } = mousePosition.value
-//
-//     return { x1, y1, x2, y2 }
-//   })
+//   // const cursorLine = computed(() => {
+//   //   if (
+//   //     !drawingPoints.value.length
+//   //     || !mousePosition.value
+//   //     || (
+//   //       (drawMode.value !== 'polygon' && !drawingPoints.value.length)
+//   //       && (drawMode.value !== 'triangle' && drawingPoints.value.length > 1)
+//   //     )
+//   //   ) {
+//   //     return null
+//   //   }
+//   //
+//   //   const { x: x1, y: y1 } = drawingPoints.value.at(-1)!
+//   //   const { x: x2, y: y2 } = mousePosition.value
+//   //
+//   //   return { x1, y1, x2, y2 }
+//   // })
 //
 //   const cursorRect = computed(() => {
 //     if (!mousePosition.value || drawMode.value !== 'rectangle' || drawingPoints.value.length !== 1) {
@@ -87,17 +74,17 @@
 //       return
 //     }
 //
-//     if (drawMode.value === 'polygon') {
-//       if (drawingPoints.value.length > 1 && matchPoints(drawingPoints.value.at(0)!, drawingPoints.value.at(-1)!)) {
-//         drawEntityWrapper([...drawingPoints.value])
-//       }
-//       else {
-//         addDrawingPoint(mousePosition.value)
-//       }
-//
-//       console.groupEnd()
-//       return
-//     }
+//     // if (drawMode.value === 'polygon') {
+//     //   if (drawingPoints.value.length > 1 && matchPoints(drawingPoints.value.at(0)!, drawingPoints.value.at(-1)!)) {
+//     //     drawEntityWrapper([...drawingPoints.value])
+//     //   }
+//     //   else {
+//     //     addDrawingPoint(mousePosition.value)
+//     //   }
+//     //
+//     //   console.groupEnd()
+//     //   return
+//     // }
 //
 //     const limit = limits[drawMode.value as keyof typeof limits]
 //
@@ -115,7 +102,7 @@
 //   }
 //
 //   return {
-//     cursorLine,
+//     // cursorLine,
 //     cursorRect,
 //     drawMode,
 //     onDraw,

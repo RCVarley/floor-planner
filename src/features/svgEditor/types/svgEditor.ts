@@ -3,8 +3,8 @@ export interface Point {
   y: number
 }
 
-export type EditorToolName = ('pan' | 'move' | 'select' | 'text' | 'draw') & string
-export type EditorDrawMode = 'rectangle' | 'triangle' | 'polygon' | 'point'
+export type EditorToolName = ('pan' | 'move' | 'select' | 'text' | 'draw' | 'rectangle') & string
+export type EditorDrawMode = 'rectangle'// | 'triangle' | 'polygon' | 'point'
 export interface SvgEditorCoreProps {
   pointerDown: boolean
   panX: number

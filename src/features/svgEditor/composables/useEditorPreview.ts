@@ -1,6 +1,7 @@
 import {computed, type Ref, ref} from "vue"
 import type {Point} from "@editor/types/svgEditor.ts";
-import {fail} from "@/features/error/utilities/errorHandling.ts";
+import {fail, type Result, succeed} from "@/features/error/utilities/errorHandling.ts";
+import {extrapolateRectanglePolygon, type RectanglePolygonPoints} from '@editor/utilities/points.ts'
 
 export type RectanglePreview = {
   visible: true
@@ -22,8 +23,8 @@ export const useEditorPreview = (toolName: string, activeToolName: Ref<string | 
   const phase = ref<PreviewPhase>('idle')
   const width = ref<number | null>(null)
   const height = ref<number | null>(null)
-  const tlX = ref<number | null>()
-  const tlY = ref<number | null>()
+  const tlX = ref<number | null>(null)
+  const tlY = ref<number | null>(null)
 
   const checkIfPointIsInside = ({ x, y }: Point) => {
     return x >= tlX.value! && x <= tlX.value! + width.value!
@@ -72,6 +73,14 @@ export const useEditorPreview = (toolName: string, activeToolName: Ref<string | 
     height.value = null
   }
 
+  const toPolygon = (): Result<RectanglePolygonPoints> => {
+    if (tlX.value === null || tlY.value === null || width.value === null || height.value === null) {
+      return fail('preview:create:bad-parameters', 'anchor point is not set')
+    }
+
+    return succeed(extrapolateRectanglePolygon(tlX.value, tlY.value, width.value, height.value))
+  }
+
   return {
     anchorPoint,
     checkIfPointIsInside,
@@ -79,5 +88,6 @@ export const useEditorPreview = (toolName: string, activeToolName: Ref<string | 
     preview,
     redraw,
     reset,
+    toPolygon,
   }
 }

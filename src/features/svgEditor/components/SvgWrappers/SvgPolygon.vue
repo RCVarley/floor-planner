@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type {Point} from "@editor/types/svgEditor.ts"
-import {computed, ref, watch, watchEffect} from "vue"
+import {computed, ref, watch} from "vue"
 import {useSvgElement} from '@editor/composables/useSvgElement.ts'
 
 const {
@@ -58,13 +58,13 @@ const moveX = computed(() => _moveX)
 const moveY = computed(() => _moveY)
 
 const { move } = useSvgElement({ moveX, moveY })
-const { debugData } = useDebug()
-watchEffect(() => {
-  if (!debugData.value.polygon) {
-    debugData.value.polygon = {} as Record<string, any>
-  }
-  debugData.value.polygon[id] = (moveX.value || moveY.value) ? move.value : null
-})
+// const { debugData } = useDebug()
+// watchEffect(() => {
+//   if (!debugData.value.polygon) {
+//     debugData.value.polygon = {} as Record<string, any>
+//   }
+//   debugData.value.polygon[id] = (moveX.value || moveY.value) ? move.value : null
+// })
 </script>
 
 <template>

@@ -201,6 +201,9 @@ export const useSelectTool = (
     'cursor-select--remove': selectionMethod.value === 'remove',
   }))
 
+  /**
+   * # onEscape
+   */
   const onEscape = () => {
     editorPreview.reset()
     selectedIds.clear()
